@@ -1,0 +1,15 @@
+﻿SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[sysdiagrams]') AND type in (N'U'))
+BEGIN
+CREATE TABLE [dbo].[sysdiagrams](
+	[name] [nvarchar](128) NOT NULL,
+	[principal_id] [int] NOT NULL,
+	[diagram_id] [int] NOT NULL,
+	[version] [int] NULL,
+	[definition] [varbinary](max) NULL
+) ON [PRIMARY]
+END
+GO

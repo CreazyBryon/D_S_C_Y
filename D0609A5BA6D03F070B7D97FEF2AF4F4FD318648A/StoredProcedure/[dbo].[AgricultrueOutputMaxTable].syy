@@ -1,0 +1,113 @@
+﻿SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[AgricultrueOutputMaxTable]') AND type in (N'P', N'PC'))
+BEGIN
+EXEC dbo.sp_executesql @statement = N'
+
+
+CREATE PROC  [dbo].[AgricultrueOutputMaxTable]
+as 
+begin
+truncate table [dbo].[GDT_AgricultrueOutputMax]
+insert into [dbo].[GDT_AgricultrueOutputMax]
+( 
+[keyword]
+      ,[startTime]
+      ,[LatestDate]
+      , ProductName_cn
+      ,[weekNo]
+      ,ThisMonthProduction
+      ,ProductName_en
+      ,[createtime],
+      [unit_cn],
+      [unit_en],
+      [DataSource_cn],
+     [dataSource_en]
+) 
+SELECT 
+
+ t. [keyword]
+      ,t.[startTime]
+      ,t.[endTime]
+      ,m.[typeName_cn] as ProductName_cn
+      ,t.[weekNo]
+      ,t.[typeCount]as ThisMonthProduction
+      ,m.[typeName_en] as ProductName_en
+      ,t.[createtime],
+      m.[unit_cn],
+      m.[unit_en],
+      m.[DataSource_cn],
+      m.[dataSource_en]
+  FROM [CnE].[dbo].[GDT_AgricultrueOutputMap]  as m
+  inner join 
+  (
+   
+
+ SELECT v. [keyword]
+      ,v.[startTime]
+      ,v.[endTime]
+      ,v.[typeName]
+      ,v.[weekNo]
+      ,v.[typeCount]
+      ,v.[createtime]
+  FROM [CnE].[dbo].[View_AgricultureOutput] as v 
+  inner join 
+   (select[typeName],
+         max([startTime])as startTime,
+         max([endTime])as [endTime] 
+    from [CnE].[dbo].[View_AgricultureOutput] 
+    group by [typeName] )n
+on v.[typeName]=n.[typeName] and v.startTime=n.startTime
+  )as t 
+  on t.[keyword]=m.[keyword]  
+
+---update1
+UPDATE a SET 
+a.[LastMonthProduction]=CONVERT(numeric(18,2),b.TYPECOUNT),
+ a.[SamePeriodOfLastYear]=CONVERT(numeric(18,2), c.TYPECOUNT),
+	a.[YTDProduct] =(
+	SELECT SUM(CONVERT(numeric(18,2), TYPECOUNT)) AS sumY FROM dbo.View_AgricultureOutput AS d
+	WHERE a.KeyWord=d.KeyWord AND d.endtime BETWEEN (CAST(YEAR( a.[LatestDate] ) AS VARCHAR(10))+''-01-01'') AND DATEADD(DAY ,1,  a.[LatestDate] )
+	),
+	a.[YTDOfLastYear] =(
+	SELECT SUM(CONVERT(numeric(18,2), TYPECOUNT)) AS sumY FROM dbo.View_AgricultureOutput AS d
+	WHERE a.KeyWord=d.KeyWord AND d.endtime BETWEEN (CAST(YEAR( a.[LatestDate] )-1 AS VARCHAR(10))+''-01-01'') AND DATEADD(YEAR , -1, a.[LatestDate])
+	)
+	 FROM  dbo.GDT_AgricultrueOutputMax AS a
+	LEFT JOIN (
+		SELECT 
+		ROW_NUMBER() OVER(PARTITION BY aa.KeyWord ORDER BY aa.endtime DESC) AS RN,		 
+		 aa.KeyWord,aa.endtime, TYPECOUNT
+		 FROM dbo.View_AgricultureOutput AS aa 
+		WHERE aa.TYPECOUNT <> 0
+	) AS b ON b.KeyWord=a.KeyWord AND b.RN = 2 	
+	LEFT JOIN  dbo.View_AgricultureOutput AS c 
+	ON a.KeyWord=c.KeyWord 
+	AND Convert(nvarchar(4),DATEADD(YEAR ,-1,  a.[LatestDate])) =  Convert(nvarchar(4), c.endtime )
+	and a.weekno=c.weekno 
+	WHERE a.DataSource_EN=''Coffed''
+---update2
+UPDATE dbo.GDT_AgricultrueOutputMax SET 
+					MoM=case LastMonthProduction 
+					when   null THEN null
+					else CONVERT(NUMERIC(18,2),((ThisMonthProduction- LastMonthProduction )/convert(float,LastMonthProduction))*100)
+					end ,
+					
+					
+					YoY= case SamePeriodOfLastYear
+					when null then null
+					else CONVERT(NUMERIC(18,2),((ThisMonthProduction- SamePeriodOfLastYear )/convert(float,SamePeriodOfLastYear))*100)
+					end 
+					,
+					
+					
+					YTDoYTD=case YTDOfLastYear 
+					when null then null 
+					else CONVERT(NUMERIC(18,2),((YTDProduct- YTDOfLastYear )/convert(float,YTDOfLastYear))*100)
+					end 
+	 
+END' 
+END
+GO

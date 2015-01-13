@@ -1,0 +1,29 @@
+﻿SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+IF NOT EXISTS (SELECT * FROM sys.views WHERE object_id = OBJECT_ID(N'[dbo].[View_Longzhong_SdLocalRate_Ftp]'))
+EXEC dbo.sp_executesql @statement = N'
+
+
+
+
+
+
+
+CREATE  view [dbo].[View_Longzhong_SdLocalRate_Ftp]
+as 
+SELECT * FROM (
+SELECT ''OC0100'' AS code,OperatingRate,ReDate,CreateDate  FROM SdLocalRefinery.TotalOperatingRate 
+) AS data
+
+
+
+
+
+
+
+
+
+' 
+GO

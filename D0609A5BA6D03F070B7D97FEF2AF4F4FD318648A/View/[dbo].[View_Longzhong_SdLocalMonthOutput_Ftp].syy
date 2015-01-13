@@ -1,0 +1,24 @@
+﻿SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+IF NOT EXISTS (SELECT * FROM sys.views WHERE object_id = OBJECT_ID(N'[dbo].[View_Longzhong_SdLocalMonthOutput_Ftp]'))
+EXEC dbo.sp_executesql @statement = N'
+
+
+CREATE  view [dbo].[View_Longzhong_SdLocalMonthOutput_Ftp]
+as 
+SELECT * FROM (
+SELECT ''OC0401'' AS code,Gasoline AS outputvalue,[Month] AS ReDate,Unit AS Unit_CN,''10KT'' AS Unit_EN,CreateDate,N''汽油(月)'' AS outputtype  FROM SdLocalRefinery.MonthProduction 
+UNION
+SELECT ''OC0501'',Diesel ,[Month],Unit,''10KT'' AS Unit_EN,CreateDate,N''柴油(月)'' AS outputtype  FROM SdLocalRefinery.MonthProduction 
+
+) AS data
+
+
+
+
+
+
+' 
+GO

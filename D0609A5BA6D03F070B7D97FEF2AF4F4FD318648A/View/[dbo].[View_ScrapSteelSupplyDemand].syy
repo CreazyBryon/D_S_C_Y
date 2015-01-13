@@ -1,0 +1,41 @@
+﻿SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+IF NOT EXISTS (SELECT * FROM sys.views WHERE object_id = OBJECT_ID(N'[dbo].[View_ScrapSteelSupplyDemand]'))
+EXEC dbo.sp_executesql @statement = N'
+
+
+CREATE view [dbo].[View_ScrapSteelSupplyDemand]
+as 
+--combine
+SELECT b.Code,a.*,N''废钢'' AS product,''[CUSteel].[ScrapSteelSupplyDemand]'' AS datatable FROM (
+	SELECT	[MonthDate] ,SupplyTotal AS ItemValue, [SyncTime] ,N''供给合计'' AS sr
+	FROM [CUSteel].[ScrapSteelSupplyDemand]
+	UNION
+	SELECT	[MonthDate] , SupplyRecycle, [SyncTime]  ,N''生产回收''
+	FROM [CUSteel].[ScrapSteelSupplyDemand]		
+	UNION
+	SELECT	[MonthDate] , SupplyNonRecycle, [SyncTime]  ,N''非生产回收''
+	FROM [CUSteel].[ScrapSteelSupplyDemand]		
+	UNION
+	SELECT	[MonthDate] , SupplyInnerTotal, [SyncTime]  ,N''国内采购''
+	FROM [CUSteel].[ScrapSteelSupplyDemand]		
+	UNION
+	SELECT	[MonthDate] , SupplyImport, [SyncTime]  ,N''进口''
+	FROM [CUSteel].[ScrapSteelSupplyDemand]		
+	UNION
+	SELECT	[MonthDate] , ConsumeTotal, [SyncTime]  ,N''消费合计''
+	FROM [CUSteel].[ScrapSteelSupplyDemand]		
+	UNION
+	SELECT	[MonthDate] , ConsumeConverter, [SyncTime]  ,N''转炉消费''
+	FROM [CUSteel].[ScrapSteelSupplyDemand]			
+	UNION
+	SELECT	[MonthDate] , ConsumeElectric, [SyncTime]  ,N''电炉消费''
+	FROM [CUSteel].[ScrapSteelSupplyDemand]		
+) AS a 
+JOIN GDT_DataCodeMapping AS b ON b.ProductName=N''废钢'' AND a.sr=b.StantisticalRange
+	
+
+' 
+GO

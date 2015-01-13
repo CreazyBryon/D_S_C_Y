@@ -1,0 +1,29 @@
+﻿SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+IF NOT EXISTS (SELECT * FROM sys.views WHERE object_id = OBJECT_ID(N'[dbo].[View_Longzhong_SdLocalDevice_Ftp]'))
+EXEC dbo.sp_executesql @statement = N'
+
+
+
+
+
+
+
+
+
+
+CREATE  view [dbo].[View_Longzhong_SdLocalDevice_Ftp]
+as 
+SELECT map.code,map.ItemName_CN AS CompanyName_CN,map.ItemName_EN AS CompanyName_EN,map2.ItemName_CN AS DeviceName_CN,map2.ItemName_EN AS DeviceName_EN ,data.* FROM (
+SELECT  YieldByTon,YieldByBarrel,MAX(ReDate) AS ReDate,Company,Device,MAX(ReDate) AS CreateDate  
+FROM SdLocalRefinery.DeviceStatistics 
+GROUP BY YieldByTon,YieldByBarrel,Device,Company
+) AS data
+JOIN dbo.GDT_SDLocalRefineryMap AS map ON   map.DataType_CN=N''地方炼厂'' AND  data.Company=map.ItemName_CN
+JOIN dbo.GDT_SDLocalRefineryMap AS map2 ON   map2.DataType_CN=N''炼厂装置'' AND  data.Device=map2.ItemName_CN
+
+
+' 
+GO

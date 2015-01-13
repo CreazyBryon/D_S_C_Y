@@ -1,0 +1,51 @@
+﻿SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[cne].[sp_SelRTMS_TABLEDATA]') AND type in (N'P', N'PC'))
+BEGIN
+EXEC dbo.sp_executesql @statement = N'
+
+
+
+
+
+
+-- =============================================
+-- Author:		wangshuaishuai
+-- Create date: 2014-02-11
+-- Description:	select shanxicoal RTMS_TABLEDATA
+-- =============================================
+CREATE PROCEDURE [cne].[sp_SelRTMS_TABLEDATA]
+	@lastSyncTime datetime,
+	@currentSyncTime datetime
+AS
+BEGIN
+	SELECT m.[id]
+      ,m.[code]
+      ,(case when n.CodeType=''Monthly'' and len(m.[times])=7  then CONVERT(varchar(10),DATEADD(day,-1,DATEADD(month,1,left(replace(m.[times],''-'',''''),6)+''01'')),120)
+             when n.CodeType=''Quarterly'' and right(left(m.[times],7),2)=''01'' and len(m.[times])=7 then left(m.[times],4)+''-03-31''
+             when n.CodeType=''Quarterly'' and right(left(m.[times],7),2)=''02'' and len(m.[times])=7 then left(m.[times],4)+''-06-30''
+             when n.CodeType=''Quarterly'' and right(left(m.[times],7),2)=''03'' and len(m.[times])=7 then left(m.[times],4)+''-09-30''
+             when n.CodeType=''Quarterly'' and right(left(m.[times],7),2)=''04'' and len(m.[times])=7 then left(m.[times],4)+''-12-31''
+             when n.CodeType=''Yearly''  and len(m.[times])=4 then left(m.[times],4)+''-12-31''
+             else m.[times]
+        end) ''times''
+      ,m.[value]
+      ,m.[status]
+      ,m.[dLastAccess] as ''lastAccess'' 
+      --,n.CodeType
+  FROM [CnE].[MySteel].[RTMS_TABLEDATA] m
+  left join [CnE].[MySteel].[RTMS_CodeType] n on m.code=n.Code
+  where dLastAccess>=@lastSyncTime and dLastAccess<=@currentSyncTime;
+END
+
+
+
+
+
+
+
+' 
+END
+GO

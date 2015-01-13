@@ -1,0 +1,20 @@
+﻿SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[GDT_DataCodeDict]') AND type in (N'U'))
+BEGIN
+CREATE TABLE [dbo].[GDT_DataCodeDict](
+	[iid] [int] IDENTITY(1,1) NOT NULL,
+	[code] [nvarchar](50) NULL,
+	[name] [nvarchar](50) NULL,
+	[level] [int] NULL,
+	[UpdateTime] [datetime] NULL,
+	[groups] [nvarchar](50) NULL,
+ CONSTRAINT [PK_GDT_DataCodeDict] PRIMARY KEY CLUSTERED 
+(
+	[iid] ASC
+)WITH (PAD_INDEX  = OFF, STATISTICS_NORECOMPUTE  = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS  = ON, ALLOW_PAGE_LOCKS  = ON) ON [PRIMARY]
+) ON [PRIMARY]
+END
+GO

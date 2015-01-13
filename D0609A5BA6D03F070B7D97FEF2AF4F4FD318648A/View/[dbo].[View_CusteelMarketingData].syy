@@ -1,0 +1,35 @@
+﻿SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+IF NOT EXISTS (SELECT * FROM sys.views WHERE object_id = OBJECT_ID(N'[dbo].[View_CusteelMarketingData]'))
+EXEC dbo.sp_executesql @statement = N'
+
+
+CREATE view [dbo].[View_CusteelMarketingData]
+as 
+ SELECT data.*,b.Code FROM (
+	SELECT cnname,re_date,Output_Month AS datavalue,SyncTime,N''产量合计'' AS coloumnname FROM cne.CusteelMarketingOutputData
+	UNION
+	SELECT cnname,re_date,Sell_Branch_Month AS datavalue,SyncTime,N''分支机构'' AS coloumnname FROM cne.CusteelMarketingOutputData
+	UNION
+	SELECT cnname,re_date,Sell_Direct_Month AS datavalue,SyncTime,N''直供'' AS coloumnname FROM cne.CusteelMarketingOutputData
+	UNION
+	SELECT cnname,re_date,Sell_Distribution_Month AS datavalue,SyncTime,N''分销'' AS coloumnname FROM cne.CusteelMarketingOutputData
+	UNION
+	SELECT cnname,re_date,Sell_Export_Month AS datavalue,SyncTime,N''出口'' AS coloumnname FROM cne.CusteelMarketingOutputData
+	UNION
+	SELECT cnname,re_date,Sell_Retail_Month AS datavalue,SyncTime,N''零售'' AS coloumnname FROM cne.CusteelMarketingOutputData
+	UNION
+	SELECT cnname,re_date,Sell_Totle_Month AS datavalue,SyncTime,N''销量合计'' AS coloumnname FROM cne.CusteelMarketingOutputData
+	UNION
+	SELECT cnname,re_date,Stock_Closing AS datavalue,SyncTime,N''库存合计'' AS coloumnname FROM cne.CusteelMarketingOutputData
+	) AS data
+JOIN dbo.GDT_DataCodeMapping AS b ON data.cnname=b.RelatedProductName AND data.coloumnname=b.RelatedColumnName AND b.DataSrc=''Custeel''
+
+
+
+
+
+' 
+GO

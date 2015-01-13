@@ -1,0 +1,16 @@
+﻿SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[SdLocalRefinery].[DeviceStatistics]') AND type in (N'U'))
+BEGIN
+CREATE TABLE [SdLocalRefinery].[DeviceStatistics](
+	[Code] [nvarchar](50) NULL,
+	[Company] [nvarchar](50) NULL,
+	[Device] [nvarchar](50) NULL,
+	[YieldByTon] [numeric](18, 2) NULL,
+	[YieldByBarrel] [numeric](18, 2) NULL,
+	[ReDate] [date] NULL
+) ON [PRIMARY]
+END
+GO

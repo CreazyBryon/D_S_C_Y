@@ -1,0 +1,18 @@
+﻿SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[GetAgricultureOutputData]') AND type in (N'P', N'PC'))
+BEGIN
+EXEC dbo.sp_executesql @statement = N'create proc [GetAgricultureOutputData]
+@key nvarchar(50)          
+as 
+begin  
+ SELECT convert(float,[typeCount])as  ''output''
+	,CONVERT(varchar(10), [endTime], 23)   as re_date
+	FROM [CnE].[dbo].[View_AgricultureOutput]
+	where   [keyword]=@key AND [typeCount] IS NOT NULL AND [typeCount]<>''0''
+	order by [re_date] 
+end ' 
+END
+GO

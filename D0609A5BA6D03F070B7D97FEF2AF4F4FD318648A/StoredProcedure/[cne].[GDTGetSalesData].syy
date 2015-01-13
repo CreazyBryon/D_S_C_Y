@@ -1,0 +1,19 @@
+﻿SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[cne].[GDTGetSalesData]') AND type in (N'P', N'PC'))
+BEGIN
+EXEC dbo.sp_executesql @statement = N'CREATE  PROCEDURE [cne].[GDTGetSalesData]  
+@chartSp nvarchar(50)=''MetalSalesData''  , 
+@key nvarchar(50)         
+AS  
+  
+  if(@chartSp=''MetalSalesData'')
+  begin  
+   exec [cne].[GetMetalSalesData] @key
+  end 
+
+' 
+END
+GO

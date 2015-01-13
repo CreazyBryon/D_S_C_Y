@@ -1,0 +1,64 @@
+﻿SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[sp_MergeCusteelMarketingData]') AND type in (N'P', N'PC'))
+BEGIN
+EXEC dbo.sp_executesql @statement = N'
+CREATE PROCEDURE [dbo].[sp_MergeCusteelMarketingData]
+AS
+BEGIN
+	
+	DECLARE @latestDate DATE;
+	SELECT @latestDate = ISNULL(MIN(dd),''1990-01-01'') FROM 
+	(
+		SELECT MAX(re_date) AS dd FROM cne.CusteelMarketingOutputData 
+		GROUP BY code
+	) AS exi
+	WHERE dd IS NOT NULL 
+	;
+	
+	MERGE INTO cne.CusteelMarketingOutputData AS T
+	USING (SELECT * FROM (
+				SELECT ROW_NUMBER() OVER(PARTITION BY m.code,m.[re_date] ORDER BY m.SyncTime DESC) AS ''RowNum'',
+					 m.code, m.cnname, m.re_date, m.sheet_no, m.unit, m.Output_Month, m.Sell_Totle_Month, m.Sell_Direct_Month
+					, m.Sell_Distribution_Month, m.Sell_Retail_Month, m.Sell_Branch_Month, m.Sell_Export_Month, m.Stock_Increase_Month
+					, m.Output_YTD, m.Sell_Totle_YTD, m.Sell_Direct_YTD, m.Sell_Distribution_YTD, m.Sell_Retail_YTD, m.Sell_Branch_YTD
+					, m.Sell_Export_YTD, m.Stock_Opening, m.Stock_Closing, m.SyncTime
+				FROM  cne.CusteelMarketingOutputDataTemp  m 
+				WHERE m.re_date >= @latestDate		
+				) AS a 
+				WHERE a.RowNum=1
+			) AS S
+	ON T.code=S.code and T.[re_date] = S.[re_date]
+	WHEN MATCHED  THEN
+	  UPDATE SET T.Output_Month = S.Output_Month
+				,T.Sell_Totle_Month = S.Sell_Totle_Month
+				,T.Sell_Direct_Month = S.Sell_Direct_Month				
+				,T.Sell_Distribution_Month = S.Sell_Distribution_Month
+				,T.Sell_Retail_Month = S.Sell_Retail_Month
+				,T.Sell_Branch_Month = S.Sell_Branch_Month
+				,T.Sell_Export_Month = S.Sell_Export_Month
+				,T.Stock_Increase_Month = S.Stock_Increase_Month				
+				,T.Output_YTD = S.Output_YTD
+				,T.Sell_Totle_YTD = S.Sell_Totle_YTD
+				,T.Sell_Direct_YTD = S.Sell_Direct_YTD
+				,T.Sell_Distribution_YTD = S.Sell_Distribution_YTD
+				,T.Sell_Retail_YTD = S.Sell_Retail_YTD
+				,T.Sell_Branch_YTD = S.Sell_Branch_YTD				
+				,T.Sell_Export_YTD = S.Sell_Export_YTD
+				,T.Stock_Opening = S.Stock_Opening
+				,T.Stock_Closing = S.Stock_Closing
+				,T.SyncTime = S.SyncTime				
+	WHEN NOT MATCHED THEN
+	  INSERT  VALUES (S.code, S.cnname, S.re_date, S.sheet_no, S.unit, S.Output_Month, S.Sell_Totle_Month, S.Sell_Direct_Month
+					, S.Sell_Distribution_Month, S.Sell_Retail_Month, S.Sell_Branch_Month, S.Sell_Export_Month, S.Stock_Increase_Month
+					, S.Output_YTD, S.Sell_Totle_YTD, S.Sell_Direct_YTD, S.Sell_Distribution_YTD, S.Sell_Retail_YTD, S.Sell_Branch_YTD
+					, S.Sell_Export_YTD, S.Stock_Opening, S.Stock_Closing, S.SyncTime)
+	output $action as [action],inserted.* ;
+
+	TRUNCATE TABLE cne.CusteelMarketingOutputDataTemp 
+END
+' 
+END
+GO

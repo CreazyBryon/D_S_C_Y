@@ -1,0 +1,38 @@
+﻿SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[sp_UpdateCusteelData]') AND type in (N'P', N'PC'))
+BEGIN
+EXEC dbo.sp_executesql @statement = N'
+
+
+
+CREATE PROCEDURE [dbo].[sp_UpdateCusteelData]
+AS
+BEGIN
+	MERGE INTO [cne].[CusteelData] AS T
+	USING (SELECT m.code,m.[DBSetID],m.[time],max([price]) ''price'',max([CreateDate]) ''CreateDate'' 
+			FROM  [cne].[CusteelTempData]  m 
+			group by m.code,m.[DBSetID],m.[time] ) AS S
+	ON T.code=S.code and T.[time]=S.[time]
+	WHEN MATCHED AND CONVERT(NUMERIC(18,2),T.price)<>CONVERT(NUMERIC(18,2),S.price) THEN
+	  UPDATE SET T.[price] = S.[price],T.[CreateDate] = S.[CreateDate],T.[DBSetID] = S.[DBSetID]
+	WHEN NOT MATCHED THEN
+	  INSERT  VALUES (S.[code],S.[DBSetID],S.[time],S.[price],getdate() )
+	output $action as [action],inserted.[code] as ''插入的code'',
+					   inserted.[DBSetID] as ''插入的DBSetID'',
+					   inserted.[time] as ''插入的time'',  
+					   inserted.[price] as ''插入的price'', 
+					   deleted.[code] as ''删除的code'',
+					   deleted.[DBSetID] as ''删除的DBSetID'',
+					   deleted.[time] as ''删除的time'',  
+					   deleted.[price] as ''删除的price'' ;	
+	DELETE cne.CusteelTempData 
+END
+
+
+
+' 
+END
+GO

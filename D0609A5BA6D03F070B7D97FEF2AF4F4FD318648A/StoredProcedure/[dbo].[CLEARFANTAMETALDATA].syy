@@ -1,0 +1,56 @@
+﻿SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[CLEARFANTAMETALDATA]') AND type in (N'P', N'PC'))
+BEGIN
+EXEC dbo.sp_executesql @statement = N'CREATE PROC [dbo].[CLEARFANTAMETALDATA]
+AS
+ DELETE FROM [cne].[FanyaMetals] WHERE ID NOT IN 
+ ( 
+ 
+   select T.id from ( 
+   SELECT * FROM (
+      SELECT m.* FROM [cne].[FanyaMetals] AS M
+       INNER JOIN(
+       select code,
+            max([QuotationTime]) as pricetime, [QuotationDate] from  [cne].[FanyaMetals] as n
+             WHERE  (convert(datetime,''1970-01-01 ''+left([QuotationTime],2)+'':''+left(right([QuotationTime],4),2)+'':''+right([QuotationTime],2),120)>=''1970-01-01 20:30:00'' 
+             or convert(datetime,''1970-01-02 ''+left([QuotationTime],2)+'':''+left(right([QuotationTime],4),2)+'':''+right([QuotationTime],2),120)<=''1970-01-02 00:35:00'' 
+             )
+             and QuotationTime like ''00%''
+            group by code,[QuotationDate]
+            ) AS TBL
+            ON TBL.CODE=M.CODE AND M.[QuotationDate]=TBL.[QuotationDate]
+            AND M.[QuotationTime]=TBL.pricetime  
+            AND TBL.[QuotationDate] !=''''
+            AND TBL.[QuotationDate] IS NOT NULL
+            AND DATEDIFF(DAY,CONVERT(DATETIME,LEFT(TBL.[QuotationDate],4)+''-''+LEFT(RIGHT(TBL.[QuotationDate],4),2)+''-''+RIGHT(TBL.[QuotationDate],2)+'' 00:00:00''),GETDATE())>=7
+   ) AS T where datepart(dw, T.[QuotationDate])=6 or datepart(dw, T.[QuotationDate])=2 or datepart(dw, T.[QuotationDate])=3 or datepart(dw, T.[QuotationDate])=4 or datepart(dw, T.[QuotationDate])=5 
+union all 
+     SELECT m.* FROM [cne].[FanyaMetals] AS M
+       INNER JOIN(
+       select code,
+            max([QuotationTime]) as pricetime, [QuotationDate] from  [cne].[FanyaMetals] as n
+             WHERE  convert(datetime,''1970-01-01 ''+left([QuotationTime],2)+'':''+left(right([QuotationTime],4),2)+'':''+right([QuotationTime],2),120)>=''1970-01-01 01:55:00'' 
+             AND convert(datetime,''1970-01-01 ''+left([QuotationTime],2)+'':''+left(right([QuotationTime],4),2)+'':''+right([QuotationTime],2),120)<=''1970-01-01 17:05:00''
+             --QuotationTime like ''00%''
+            group by code,[QuotationDate]
+            ) AS TBL
+            ON TBL.CODE=M.CODE AND M.[QuotationDate]=TBL.[QuotationDate]
+            AND M.[QuotationTime]=TBL.pricetime  
+            AND TBL.[QuotationDate] !=''''
+            AND TBL.[QuotationDate] IS NOT NULL
+            AND DATEDIFF(DAY,CONVERT(DATETIME,LEFT(TBL.[QuotationDate],4)+''-''+LEFT(RIGHT(TBL.[QuotationDate],4),2)+''-''+RIGHT(TBL.[QuotationDate],2)+'' 00:00:00''),GETDATE())>=7
+         
+UNION ALL
+      SELECT * FROM  [cne].[FanyaMetals]
+      WHERE [QuotationDate] !=''''
+            AND [QuotationDate] IS NOT NULL
+            AND
+       DATEDIFF(DAY,CONVERT(DATETIME,LEFT([QuotationDate],4)+''-''+LEFT(RIGHT([QuotationDate],4),2)+''-''+RIGHT([QuotationDate],2)+'' 00:00:00''),GETDATE())<7   
+   )AS T
+
+  ) ' 
+END
+GO

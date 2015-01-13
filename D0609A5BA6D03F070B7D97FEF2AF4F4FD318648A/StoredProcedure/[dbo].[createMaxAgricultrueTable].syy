@@ -1,0 +1,46 @@
+﻿SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[createMaxAgricultrueTable]') AND type in (N'P', N'PC'))
+BEGIN
+EXEC dbo.sp_executesql @statement = N'CREATE proc [dbo].[createMaxAgricultrueTable]
+as
+insert into [CnE].[dbo].[GDT_AgricultureMax] select * from (SELECT 
+m.Product_EN,
+m.Product_CN,
+m.[KeyWord],
+            m.GN_TXT16_2,
+           m.SYMBOL,
+            m.DSPLY_NAME,
+           m.RIC, 
+            m.Province_CN,
+           m.City_CN,
+            m.Province_EN,
+            m.City_EN,
+            m.Grade_CN, 
+            m.Grade_EN, 
+            a.re_date,
+           CONVERT(float, a.price) AS price,
+            m.DataSource AS DataSource_en,
+            (case m.DataSource
+             when ''Cofeed'' then N''天下粮仓''
+             when ''ChinaJCI'' then N''中国汇易''
+             end
+            ) AS DataSource_cn,
+            m.DataSource,
+            m.unit_cn,
+            m.unit_en, 
+            right(m.[KeyWord],7)  as orderKey   
+            FROM [CnE].[dbo].[GDT_AgricultureMap]  AS m   
+              INNER JOIN  
+            ( select m.[KeyWord],convert(datetime,m.re_date,120) as re_date,m.[price] 
+            FROM [dbo].[View_GDT_Agriculture] m 
+             inner join(
+              select n.[KeyWord],max(convert(datetime,n.re_date,120) ) ''re_date'' 
+             FROM [dbo].[View_GDT_Agriculture] n 
+             group by n.[KeyWord] 
+            ) a on m.[KeyWord]=a.[KeyWord] and m.re_date=a.re_date 
+           ) AS a ON m.[KeyWord] = a.[KeyWord]) as datasource  ' 
+END
+GO

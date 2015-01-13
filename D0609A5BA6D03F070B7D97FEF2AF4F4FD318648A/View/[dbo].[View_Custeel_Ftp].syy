@@ -1,0 +1,73 @@
+﻿SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+IF NOT EXISTS (SELECT * FROM sys.views WHERE object_id = OBJECT_ID(N'[dbo].[View_Custeel_Ftp]'))
+EXEC dbo.sp_executesql @statement = N'
+
+
+
+
+CREATE view [dbo].[View_Custeel_Ftp]
+as 
+
+SELECT data.code,
+(CASE UpdateFrequency_EN 
+WHEN ''monthly'' THEN CAST ( DATEADD(day,-1,DATEADD(mm,DATEDIFF(m,0,data.re_date)+1,0))  AS DATE )
+ELSE data.re_date
+END 
+) AS re_date,
+data.datavalue,data.syncTime,
+ProductName_EN, Specification_EN, Type_EN, LocationofSale_EN, Description_EN, Datatype_EN, Unit_EN, UpdateFrequency_EN, 
+ProductName_CN, Specification_CN, Type_CN, LocationofSale_CN, Description_CN, Datatype_CN, Unit_CN, UpdateFrequency_CN
+ FROM (
+	SELECT code,re_date,datavalue ,SyncTime AS syncTime,''dbo.View_CusteelMarketingData'' AS src 
+	FROM dbo.View_CusteelMarketingData
+	UNION--------------------------------------------------------------------------------------
+	SELECT b.Code,[MonthDate] ,ItemValue, [SyncTime] ,''[CUSteel].[ScrapSteelBaseInventory]''
+	FROM [CUSteel].[ScrapSteelBaseInventory] AS a 
+	join dbo.GDT_DataCodeMapping AS b ON b.ProductName=N''废钢'' AND b.DataCategory=N''库存'' AND a.itemname=b.StantisticalRange
+	UNION-----------------------------------
+	SELECT b.Code,[MonthDate] ,ItemValue, [SyncTime] ,''[CUSteel].[OreBondedAreaInventory]''
+	FROM [CUSteel].[OreBondedAreaInventory] AS a 
+	join dbo.GDT_DataCodeMapping AS b ON b.ProductName=N''铁矿石'' AND b.DataCategory=N''库存'' AND N''保税区库存:''+a.itemname=b.StantisticalRange	
+	UNION--------------------------------------------------------------------------------------
+	SELECT b.Code,[MonthDate] ,ItemValue, [SyncTime] ,''[CUSteel].[HeavyAndMediumPlate]''
+	FROM [CUSteel].[HeavyAndMediumPlate] AS a 
+	join dbo.GDT_DataCodeMapping AS b ON b.ProductName=N''中厚板'' AND a.itemname=b.RelatedColumnName 
+	UNION--------------------------------------------------------------------------------------	
+	SELECT Code, MonthDate, ItemValue, SyncTime, datatable FROM View_ScrapSteelSupplyDemand AS a 
+	UNION--------------------------------------------------------------------------------------
+	SELECT b.Code,[MonthDate] ,ItemValue, [SyncTime] ,''[CUSteel].[TenDaysPeriodOutput]''
+	FROM [CUSteel].[TenDaysPeriodOutput] AS a 
+	join dbo.GDT_DataCodeMapping AS b ON b.ProductName=N''粗钢'' AND a.itemname=b.RelatedColumnName 	
+	UNION--------------------------------------------------------------------------------------
+	SELECT b.Code,[MonthDate] ,ItemValue, [SyncTime] ,''[CUSteel].[KeyMonthOutput]''
+	FROM [CUSteel].[KeyMonthOutput] AS a 
+	join dbo.GDT_DataCodeMapping AS b ON b.DataCategory=N''产量：月度'' AND b.StantisticalRange=N''全国重点钢厂'' AND a.itemname=b.ProductName 		
+	UNION--------------------------------------------------------------------------------------
+	SELECT (SELECT Code FROM GDT_DataCodeMapping WHERE  ProductName=N''钢材''  AND DataCategory=N''库存''  AND StantisticalRange=N''全国重点钢厂'') as Code,
+	[MonthDate] ,ItemValue, [SyncTime] ,''[CUSteel].[SteelMillInventory]''
+	FROM [CUSteel].[SteelMillInventory] AS a 
+	WHERE a.ItemName=N''期末''
+	UNION--------------------------------------------------------------------------------------
+	SELECT b.Code,[MonthDate] ,ItemValue, [SyncTime] ,''[CUSteel].[IndustryFinance]''
+	FROM [CUSteel].[IndustryFinance] AS a 
+	join dbo.GDT_DataCodeMapping AS b ON b.datatype=N''财务'' AND a.itemname=b.RelatedColumnName 		
+	UNION--------------------------------------------------------------------------------------
+	SELECT (SELECT Code FROM GDT_DataCodeMapping WHERE  datatype=N''矿山'') as Code,
+	[MonthDate] ,ItemValue, [SyncTime] ,''[CUSteel].[RateOfOperation]''
+	FROM [CUSteel].[RateOfOperation] AS a 
+	UNION
+	SELECT a.code,a.time,a.price,a.CreateDate,''cne.CusteelData'' FROM cne.CusteelData AS a
+	UNION
+	SELECT b.Code,a.re_date,a.areaNum,a.createTime,''[dbo].[CompanyFlow]'' FROM [dbo].[CompanyFlow] AS a
+	join dbo.GDT_DataCodeMapping AS b ON a.sheetName=b.RelatedProductName AND a.areaName=b.RelatedColumnName
+	WHERE a.areaName<>N''出口''
+) AS data
+JOIN dbo.GDT_CusteelSmm_DataMapping AS map ON map.DataSource_eN=''custeel'' AND data.code=map.Code
+
+
+
+' 
+GO

@@ -1,0 +1,64 @@
+﻿SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[CLEARSHIPPINGDATA]') AND type in (N'P', N'PC'))
+BEGIN
+EXEC dbo.sp_executesql @statement = N'CREATE PROC [dbo].[CLEARSHIPPINGDATA]
+AS
+ 
+ declare @tbl table
+ (
+ [code] [nvarchar](max) NULL,
+	[codeName] [nvarchar](max) NULL,
+	[yesterdayClosePrice] [bigint] NULL,
+	[yesterdayShettlePrice] [bigint] NULL,
+	[openPrice] [bigint] NULL,
+	[highestPrice] [bigint] NULL,
+	[lowestPrice] [bigint] NULL,
+	[newestPrice] [bigint] NULL,
+	[averagePrice] [bigint] NULL,
+	[JiaoGeDate] [date] NULL,
+	[zhangdie] [nvarchar](max) NULL,
+	[TurnoverAmount] [bigint] NULL,
+	[ChengjiaoJine] [bigint] NULL,
+	[chicang] [bigint] NULL,
+	[BuOnePrice] [bigint] NULL,
+	[BuyOneAmount] [bigint] NULL,
+	[SellOnePrice] [bigint] NULL,
+	[selloneAmount] [bigint] NULL,
+	[chengjiaotime] [nvarchar](max) NULL,
+	[createDateTime] [datetime] NULL,
+	[masterCode] [nvarchar](max) NULL,
+	[isTradeTime] [bit] NULL,
+	[FetchTime] [datetime] NULL
+ 
+ )
+ 
+
+ insert into @tbl 
+ SELECT * FROM 
+ (
+  SELECT m.* FROM [dbo].[Sail_Travel_SH] AS M
+   INNER JOIN(
+       select code,
+            max([createDateTime]) as pricetime,CONVERT(NVARCHAR(10),[createDateTime],120) AS [CreateDate]  from [dbo].[Sail_Travel_SH] as n
+            group by code,CONVERT(NVARCHAR(10),N.[createDateTime],120) 
+            ) AS TBL
+            ON
+             TBL.CODE=M.CODE  
+            AND CONVERT(NVARCHAR(10),M.[createDateTime],120)=TBL.[CreateDate]
+            AND M.[createDateTime]=TBL.pricetime 
+            AND DATEDIFF(DAY,M.[createDateTime],GETDATE())>=7
+   
+   
+   union all
+   select * from  [dbo].[Sail_Travel_SH]
+   where DATEDIFF(DAY,[createDateTime],GETDATE())<7
+   ) AS T 
+   
+   
+   delete from [dbo].[Sail_Travel_SH]
+   insert into [dbo].[Sail_Travel_SH] select * from @tbl' 
+END
+GO

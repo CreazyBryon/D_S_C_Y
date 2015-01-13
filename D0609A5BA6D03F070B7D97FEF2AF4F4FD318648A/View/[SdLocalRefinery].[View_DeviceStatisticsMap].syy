@@ -1,0 +1,22 @@
+﻿SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+IF NOT EXISTS (SELECT * FROM sys.views WHERE object_id = OBJECT_ID(N'[SdLocalRefinery].[View_DeviceStatisticsMap]'))
+EXEC dbo.sp_executesql @statement = N'
+
+CREATE view [SdLocalRefinery].[View_DeviceStatisticsMap]
+as 
+SELECT n.[Code]
+      ,m.[Device]
+      ,x.[ItemName_EN] AS [Device_EN]
+      ,m.[YieldByTon]
+      ,m.[YieldByBarrel]
+      ,m.[ReDate]
+      ,n.[ItemName_CN]
+      ,n.[ItemName_EN]
+FROM  [SdLocalRefinery].[DeviceStatistics] m
+INNER JOIN  [dbo].[GDT_SDLocalRefineryMap] n ON m.[Code]=n.[Code] AND n.[DataType_EN]=''refineries'' 
+LEFT JOIN [dbo].[GDT_SDLocalRefineryMap] x ON m.[Device]=x.[ItemName_CN] AND x.[DataType_EN]=''devices'' 
+' 
+GO

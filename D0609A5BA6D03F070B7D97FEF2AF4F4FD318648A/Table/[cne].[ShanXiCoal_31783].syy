@@ -1,0 +1,29 @@
+﻿SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[cne].[ShanXiCoal_31783]') AND type in (N'U'))
+BEGIN
+CREATE TABLE [cne].[ShanXiCoal_31783](
+	[ID] [int] IDENTITY(1,1) NOT NULL,
+	[Day] [varchar](20) NULL,
+	[RowID] [int] NULL,
+	[RowName] [nvarchar](50) NULL,
+	[col_1] [nvarchar](50) NULL,
+	[col_2] [nvarchar](50) NULL,
+	[col_3] [nvarchar](50) NULL,
+	[col_4] [nvarchar](50) NULL,
+	[CreateDate] [datetime] NULL,
+PRIMARY KEY CLUSTERED 
+(
+	[ID] ASC
+)WITH (PAD_INDEX  = OFF, STATISTICS_NORECOMPUTE  = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS  = ON, ALLOW_PAGE_LOCKS  = ON) ON [PRIMARY]
+) ON [PRIMARY]
+END
+GO
+IF NOT EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF__ShanXiCoa__Creat__573DED66]') AND type = 'D')
+BEGIN
+ALTER TABLE [cne].[ShanXiCoal_31783] ADD  DEFAULT (getdate()) FOR [CreateDate]
+END
+
+GO

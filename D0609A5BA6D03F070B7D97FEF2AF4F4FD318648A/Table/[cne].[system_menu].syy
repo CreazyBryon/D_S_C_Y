@@ -1,0 +1,35 @@
+﻿SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[cne].[system_menu]') AND type in (N'U'))
+BEGIN
+CREATE TABLE [cne].[system_menu](
+	[id] [int] IDENTITY(1,1) NOT NULL,
+	[title_cn] [nvarchar](50) NULL,
+	[title_en] [nvarchar](50) NULL,
+	[mlevel] [int] NULL,
+	[level_sequence1] [int] NOT NULL,
+	[level_sequence2] [int] NOT NULL,
+	[level_sequence3] [int] NOT NULL,
+	[url] [nvarchar](max) NULL,
+	[updateDate] [bigint] NULL,
+ CONSTRAINT [PK_system_menu] PRIMARY KEY CLUSTERED 
+(
+	[id] ASC
+)WITH (PAD_INDEX  = OFF, STATISTICS_NORECOMPUTE  = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS  = ON, ALLOW_PAGE_LOCKS  = ON) ON [PRIMARY]
+) ON [PRIMARY]
+END
+GO
+IF NOT EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_system_menu_level_sequence2]') AND type = 'D')
+BEGIN
+ALTER TABLE [cne].[system_menu] ADD  CONSTRAINT [DF_system_menu_level_sequence2]  DEFAULT ((0)) FOR [level_sequence2]
+END
+
+GO
+IF NOT EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_system_menu_level_sequence3]') AND type = 'D')
+BEGIN
+ALTER TABLE [cne].[system_menu] ADD  CONSTRAINT [DF_system_menu_level_sequence3]  DEFAULT ((0)) FOR [level_sequence3]
+END
+
+GO

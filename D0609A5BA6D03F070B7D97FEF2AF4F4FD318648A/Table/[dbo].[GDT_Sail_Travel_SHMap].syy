@@ -1,0 +1,15 @@
+﻿SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[GDT_Sail_Travel_SHMap]') AND type in (N'U'))
+BEGIN
+CREATE TABLE [dbo].[GDT_Sail_Travel_SHMap](
+	[code] [nvarchar](max) NULL,
+	[cn_cn] [nvarchar](max) NULL,
+	[cn_en] [nvarchar](max) NULL,
+	[unit_cn] [nvarchar](max) NULL,
+	[unit_en] [nvarchar](max) NULL
+) ON [PRIMARY]
+END
+GO

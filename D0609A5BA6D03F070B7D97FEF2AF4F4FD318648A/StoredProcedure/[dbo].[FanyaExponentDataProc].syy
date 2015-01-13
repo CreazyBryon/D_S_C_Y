@@ -1,0 +1,41 @@
+﻿SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[FanyaExponentDataProc]') AND type in (N'P', N'PC'))
+BEGIN
+EXEC dbo.sp_executesql @statement = N'create proc [dbo].[FanyaExponentDataProc]
+@key nvarchar(50)  ,  
+@start datetime,
+@end datetime,
+@isExport int,
+@avg float output             
+AS  
+ select @avg=avg(convert(float,isnull([Exponent],0)))  
+ FROM [dbo].[FanYaExponentData]
+ where   [ProductCode]=@key and [StockTime]>=@start and [StockTime]<=@end
+  
+ IF @isExport=0
+ BEGIN
+		SELECT [ProductCode] as KeyWord, [Exponent]as price 
+		,[StockTime] as re_date
+		FROM [dbo].[FanYaExponentData]
+		where   [ProductCode]=@key and [StockTime]>=@start and [StockTime]<=@end
+		order by [StockTime]
+ END
+ ELSE
+ BEGIN
+		SELECT top 1000 
+		[ProductName] as [ProductName_CN],
+		convert(nvarchar(10),[StockTime],120)as [re_date],
+		[Exponent] as [price],
+		[YesSettle],
+		[UpsAndDown],
+		[RiseAndFall],
+		[ProductCode] as [KeyWord]
+		FROM [dbo].[FanYaExponentData]
+		where   [ProductCode]=@key and [StockTime]>=@start and [StockTime]<=@end
+		order by [StockTime] DESC
+ END' 
+END
+GO

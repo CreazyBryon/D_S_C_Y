@@ -1,0 +1,74 @@
+﻿SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[cne].[GetShangShippingPriceData]') AND type in (N'P', N'PC'))
+BEGIN
+EXEC dbo.sp_executesql @statement = N'
+CREATE PROCEDURE [cne].[GetShangShippingPriceData] 
+@key nvarchar(50)  ,  
+@start datetime,
+@end datetime,
+@isExport int,
+@avg float output             
+AS   
+ select @avg=avg(convert(float,isnull([newestPrice],0)))  
+ FROM [dbo].[Sail_Travel_SH]
+ where    [code]=@key and [createDateTime]>=convert(nvarchar(10),@start,120) and [createDateTime]<convert(nvarchar(10),dateadd(day,1,@end),120)
+ and  right(convert(nvarchar(max),[createDateTime]),6)=''3:00PM''
+  
+ IF @isExport=0
+ BEGIN
+		SELECT 
+		M.[code]AS KEYWORD,
+		M.[newestPrice]/100 as price
+		, M.[createDateTime] as re_date
+		FROM [dbo].[Sail_Travel_SH] AS M
+		INNER JOIN
+		( 
+		  SELECT MAX([createDateTime]) AS createDateTime,[code] FROM  [dbo].[Sail_Travel_SH]
+		  GROUP BY [code],CONVERT(NVARCHAR(10),[createDateTime]) 
+		
+		) AS T
+		ON   M.[code]=@key and M.[createDateTime]>=convert(nvarchar(10),@start,120) and M.[createDateTime]<convert(nvarchar(10),dateadd(day,1,@end),120)
+		AND M.[code]=T.[code] AND M.[createDateTime]=T.[createDateTime]
+		order by M.[createDateTime]
+ END
+ ELSE
+ BEGIN
+		SELECT  TOP 1000
+		M.[codeName] AS ''品种'',
+		M.[newestPrice]/100 as ''价格'',
+		 left(convert(nvarchar(max),M.[createDateTime],120) ,10)as ''日期'',
+		 right(convert(nvarchar(max),M.[createDateTime],120) ,8)as ''时间'',
+		''''as ''单位'',
+		M.[JiaoGeDate] as ''交割日期'',
+		M.[chengjiaotime] as ''成交时间'',
+		M.[BuOnePrice]/100 as ''买一价'',
+		M.[BuyOneAmount] as ''买一量'',
+		M.[SellOnePrice]/100 as ''卖一价'',
+		M.[selloneAmount] as ''卖一量'',
+		(M.[newestPrice]-M.[yesterdayShettlePrice])/100 as ''涨跌'',
+		M.[openPrice]/100 as ''开盘价'',
+		M.[highestPrice]/100 as ''最高价'',
+		M.[lowestPrice]/100 as ''最低价'',
+		M.[yesterdayShettlePrice]/100 as ''昨结算'',
+		M.[TurnoverAmount] as ''成交量'',
+		M.[ChengjiaoJine] as ''成交额'',
+		M.[yesterdayClosePrice]/100 as ''收盘价'',
+		M.[zhangdie] as ''涨跌幅'',
+		M.[code]AS ''key''
+		FROM [dbo].[Sail_Travel_SH] AS M
+		INNER JOIN
+		( 
+		  SELECT MAX([createDateTime]) AS createDateTime,[code] FROM  [dbo].[Sail_Travel_SH]
+		  GROUP BY [code],CONVERT(NVARCHAR(10),[createDateTime]) 
+		
+		) AS T
+		ON   M.[code]=@key and M.[createDateTime]>=convert(nvarchar(10),@start,120) and M.[createDateTime]<convert(nvarchar(10),dateadd(day,1,@end),120)
+		AND M.[code]=T.[code] AND M.[createDateTime]=T.[createDateTime]
+		order by M.[createDateTime]
+ END
+ ' 
+END
+GO

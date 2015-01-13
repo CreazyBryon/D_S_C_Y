@@ -1,0 +1,35 @@
+﻿SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[cne].[GDTGetOutputData]') AND type in (N'P', N'PC'))
+BEGIN
+EXEC dbo.sp_executesql @statement = N'
+
+CREATE  PROCEDURE [cne].[GDTGetOutputData]  
+@chartSp nvarchar(50)=''EnergyOutputData''  , 
+@key nvarchar(50)         
+AS  
+  if (@chartSp=''EnergyOutputData'')
+  begin
+       exec [cne].[GetEnergyOutputData] @key
+  END
+  
+  if (@chartSp=''ChemistryOutputData'')
+  begin
+       exec [cne].[GetChemistryOutputData] @key
+  end 
+  if(@chartSp=''AgricultureOutputData'')
+  begin  
+   exec [dbo].[GetAgricultureOutputData] @key
+  end 
+  
+  if(@chartSp=''MetalOutputData'')
+  begin  
+   exec [cne].[GetMetalOutputData] @key
+  end 
+
+
+' 
+END
+GO

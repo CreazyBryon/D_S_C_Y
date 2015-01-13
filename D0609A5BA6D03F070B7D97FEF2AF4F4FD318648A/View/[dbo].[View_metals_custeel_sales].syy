@@ -1,0 +1,14 @@
+﻿SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+IF NOT EXISTS (SELECT * FROM sys.views WHERE object_id = OBJECT_ID(N'[dbo].[View_metals_custeel_sales]'))
+EXEC dbo.sp_executesql @statement = N'CREATE view [dbo].[View_metals_custeel_sales]
+as 
+	SELECT  a.re_date,a.areaNum,b.Code,b.ProductName,b.StantisticalRange,b.DataCategory,b.ItemType
+	FROM [CnE].[dbo].[CompanyFlow] a
+	INNER JOIN [CnE].[dbo].[GDT_DataCodeMapping] b ON  a.sheetName=b.[RelatedProductName] AND a.areaName=b.[RelatedColumnName]
+	WHERE b.DataType=N''销量''
+
+' 
+GO

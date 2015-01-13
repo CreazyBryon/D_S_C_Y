@@ -1,0 +1,23 @@
+﻿SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+IF NOT EXISTS (SELECT * FROM sys.views WHERE object_id = OBJECT_ID(N'[dbo].[View_metals_nbs_industry]'))
+EXEC dbo.sp_executesql @statement = N'
+CREATE view [dbo].[View_metals_nbs_industry]
+as 
+SELECT a.[ProductName]
+      ,a.[Area]
+      ,a.[CollectName]
+      ,a.[Unit]
+      ,a.[ProductPrice]
+      ,a.[ReportDate]
+      ,a.[CreateDate]
+      ,c.keyword
+FROM [cne].[NationalBureau] a
+INNER JOIN [cne].[NationalMap] b ON a.[ProductName]=b.[NbsName]
+INNER JOIN [dbo].[GDT_MetalOutputMap] c ON b.[MapName]=c.ProductName_CN
+WHERE a.[CollectName]=N''当月'' AND a.[Area]=N''全国'' AND a.[ProductPrice] <> ''0.00'' AND a.[ProductPrice] IS NOT NULL
+
+' 
+GO

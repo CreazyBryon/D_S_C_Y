@@ -1,0 +1,25 @@
+﻿SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[jci_mapping]') AND type in (N'U'))
+BEGIN
+CREATE TABLE [dbo].[jci_mapping](
+	[Product_en] [nvarchar](255) NULL,
+	[product_cn] [nvarchar](255) NULL,
+	[Key] [nvarchar](255) NULL,
+	[GN_TXT16_2] [nvarchar](255) NULL,
+	[SYMBOL] [nvarchar](255) NULL,
+	[DSPLY_NAME (STATIC)] [nvarchar](255) NULL,
+	[RIC (STATIC)] [nvarchar](255) NULL,
+	[hisdata] [float] NULL,
+	[Province_CN] [nvarchar](255) NULL,
+	[City/County_CN] [nvarchar](255) NULL,
+	[Province] [nvarchar](255) NULL,
+	[City/County] [nvarchar](255) NULL,
+	[Variety] [nvarchar](255) NULL,
+	[cfrom] [nvarchar](255) NULL,
+	[cfrom_en] [nvarchar](max) NULL
+) ON [PRIMARY]
+END
+GO

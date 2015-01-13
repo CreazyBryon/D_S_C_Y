@@ -1,0 +1,31 @@
+﻿SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+IF NOT EXISTS (SELECT * FROM sys.views WHERE object_id = OBJECT_ID(N'[dbo].[View_GDT_EnergyYieldMax]'))
+EXEC dbo.sp_executesql @statement = N'
+CREATE  VIEW [dbo].[View_GDT_EnergyYieldMax]
+AS
+SELECT [id]
+      ,[KeyWord]
+      ,[ProductName_CN]
+      ,[ProductName_EN]
+      ,[LatestDate]
+      ,(CASE WHEN [KeyWord]=''A002'' OR [KeyWord]=''LZ003'' THEN [ThisMonthProduction]/10 ELSE [ThisMonthProduction] END) AS ''ThisMonthProduction''
+      ,[Unit_CN]
+      ,[Unit_EN]
+      ,[DataSource_CN]
+      ,[DataSource_EN]
+      ,[DATA_FREQ_PAR]
+      ,[UpdateTime]
+      ,(CASE WHEN [KeyWord]=''A002'' OR [KeyWord]=''LZ003'' THEN [LastMonthProduction]/10 ELSE [LastMonthProduction] END) AS ''LastMonthProduction''
+      ,[MoM]
+      ,(CASE WHEN [KeyWord]=''A002'' OR [KeyWord]=''LZ003'' THEN [SamePeriodOfLastYear]/10 ELSE [SamePeriodOfLastYear] END) AS ''SamePeriodOfLastYear''
+      ,[YoY]
+      ,(CASE WHEN [KeyWord]=''A002'' OR [KeyWord]=''LZ003'' THEN [YTDProduction]/10 ELSE [YTDProduction] END) AS ''YTDProduction''
+      ,[YTDOfLastYear]
+      ,[YTDoYTD]
+  FROM [CnE].[dbo].[GDT_EnergyYieldMax]
+
+' 
+GO

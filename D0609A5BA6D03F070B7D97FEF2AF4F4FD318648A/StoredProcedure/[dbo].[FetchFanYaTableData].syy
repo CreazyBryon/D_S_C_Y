@@ -1,0 +1,46 @@
+﻿SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[FetchFanYaTableData]') AND type in (N'P', N'PC'))
+BEGIN
+EXEC dbo.sp_executesql @statement = N'create proc FetchFanYaTableData
+as
+select 
+m.ID, 
+m.Code,
+m.OpenPrice,
+m.HighestPrice,
+m.LowestPrice, 
+m.BuyOnePrice,
+m.SaleOnePrice,
+m.LatestPrice,
+m.Change, 
+m.TurnoverAmount,
+m.OrderAmount, 
+m.SettlementPrice,
+m.YesterdaySettlement,
+m.BuyAmountOne, 
+m.SaleAmountOne, 
+m.Turnover, 
+m.[Order],
+m.Name,
+t.priceDate,
+t.priceTime,
+m.CreateDate
+from [cne].[FanyaMetals] as m
+inner join
+(    
+  select max(testTable.[QuotationTime]) as priceTime ,testTable.[code],testTable.[priceDate] from
+     (select [v].[QuotationTime],[dateTable].[code],[dateTable].[priceDate] from [cne].[FanyaMetals] as v
+     inner join
+     (select code,max(QuotationDate) as priceDate  from  [cne].[FanyaMetals] as n
+      group by code) as [dateTable]
+     on [dateTable].[code]=[v].[code] and [dateTable].[priceDate]=[v].[QuotationDate]
+     ) as testTable
+     group by testTable.[code],testTable.[priceDate]
+       
+ )as t
+on t.[code]=m.[code] and m.[QuotationDate]=t.[priceDate] and m.[QuotationTime]=t.[priceTime]' 
+END
+GO

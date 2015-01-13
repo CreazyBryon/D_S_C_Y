@@ -1,0 +1,4 @@
+﻿IF NOT EXISTS (SELECT * FROM sys.schemas WHERE name = N'SdLocalRefinery')
+EXEC sys.sp_executesql N'CREATE SCHEMA [SdLocalRefinery] AUTHORIZATION [dbo]'
+
+GO

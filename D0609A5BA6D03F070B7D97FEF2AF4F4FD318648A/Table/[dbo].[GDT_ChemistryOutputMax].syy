@@ -1,0 +1,37 @@
+﻿SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[GDT_ChemistryOutputMax]') AND type in (N'U'))
+BEGIN
+CREATE TABLE [dbo].[GDT_ChemistryOutputMax](
+	[id] [int] IDENTITY(1,1) NOT NULL,
+	[KeyWord] [nvarchar](100) NULL,
+	[LatestDate] [date] NULL,
+	[ThisMonthProduction] [numeric](18, 2) NULL,
+	[ProductName_CN] [nvarchar](100) NULL,
+	[ProductName_EN] [nvarchar](100) NULL,
+	[Unit_CN] [nvarchar](50) NULL,
+	[Unit_EN] [nvarchar](50) NULL,
+	[DataSource_CN] [nvarchar](50) NULL,
+	[DataSource_EN] [nvarchar](50) NULL,
+	[DATA_FREQ_PAR] [nvarchar](50) NULL,
+	[Variety_CN] [nvarchar](50) NULL,
+	[Variety_EN] [nvarchar](50) NULL,
+	[Remark_CN] [nvarchar](100) NULL,
+	[Remark_EN] [nvarchar](100) NULL,
+	[UpdateTime] [datetime] NULL,
+	[LastMonthProduction] [numeric](18, 2) NULL,
+	[MoM] [numeric](18, 2) NULL,
+	[SamePeriodOfLastYear] [numeric](18, 2) NULL,
+	[YoY] [numeric](18, 2) NULL,
+	[YTDProduction] [numeric](18, 2) NULL,
+	[YTDOfLastYear] [numeric](18, 2) NULL,
+	[YTDoYTD] [numeric](18, 2) NULL,
+ CONSTRAINT [PK_GDT_ChemistryOutputMax] PRIMARY KEY CLUSTERED 
+(
+	[id] ASC
+)WITH (PAD_INDEX  = OFF, STATISTICS_NORECOMPUTE  = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS  = ON, ALLOW_PAGE_LOCKS  = ON) ON [PRIMARY]
+) ON [PRIMARY]
+END
+GO

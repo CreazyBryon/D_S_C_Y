@@ -1,0 +1,25 @@
+﻿SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[cne].[metals_smm_shanghai]') AND type in (N'U'))
+BEGIN
+CREATE TABLE [cne].[metals_smm_shanghai](
+	[id] [int] NOT NULL,
+	[code] [nvarchar](50) NOT NULL,
+	[productName] [nvarchar](50) NULL,
+	[unit] [nvarchar](50) NULL,
+	[specification] [nvarchar](50) NULL,
+	[grade] [nvarchar](50) NULL,
+	[brand] [nvarchar](50) NULL,
+	[locationOfSale] [nvarchar](50) NULL,
+	[locationOfProduction] [nvarchar](50) NULL,
+	[producer] [nvarchar](50) NULL,
+	[lowestPrice] [nvarchar](50) NULL,
+	[highestPrice] [nvarchar](50) NULL,
+	[updateDate] [nvarchar](50) NULL,
+	[updateDateTime] [datetime] NULL,
+	[Lanuage] [bit] NOT NULL
+) ON [PRIMARY]
+END
+GO

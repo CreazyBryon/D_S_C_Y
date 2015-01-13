@@ -1,0 +1,63 @@
+﻿SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[FN_GetCofeedCode]') AND type in (N'FN', N'IF', N'TF', N'FS', N'FT'))
+BEGIN
+execute dbo.sp_executesql @statement = N'
+
+
+CREATE FUNCTION [dbo].[FN_GetCofeedCode]
+(
+	@lv2_src NVARCHAR(100),	
+	@lv4_src NVARCHAR(100)	
+)
+RETURNS NVARCHAR(100)
+AS
+BEGIN
+
+	
+	DECLARE @res NVARCHAR(100);
+	
+	DECLARE @lv1 NVARCHAR(10);	
+	DECLARE @lv2 NVARCHAR(10);		
+	DECLARE @lv3 NVARCHAR(10);		
+	DECLARE @lv4 NVARCHAR(10);		
+	
+	SELECT @lv1 = ''CF'';
+	SELECT @lv2 = CASE @lv2_src 
+					WHEN N'' 大豆库存'' THEN ''01''
+					WHEN N''棕榈油库存'' THEN ''22''	
+					WHEN N''豆油库存'' THEN ''03''	
+					WHEN N''豆粕库存'' THEN ''02''		
+					END
+					;				
+	SELECT @lv3 = ''02''; 
+	
+	SELECT @lv4 =  CASE @lv4_src 
+					WHEN N''全国总计'' THEN ''00''	
+					WHEN N''东北'' THEN ''01''
+					WHEN N''华北（含天津）'' THEN ''02''
+					WHEN N''天津'' THEN ''03''
+					WHEN N''山东'' THEN ''04''		
+					WHEN N''华东'' THEN ''05''	
+					WHEN N''广东'' THEN ''06''	
+					WHEN N''福建'' THEN ''07''	
+					WHEN N''广西'' THEN ''08''
+					WHEN N''河南'' THEN ''09''																				
+					WHEN N''其它'' THEN ''10''
+					WHEN N''湖北'' THEN ''11''
+					WHEN N''四川'' THEN ''12''
+					WHEN N''陕西'' THEN ''13''	
+					END
+					;
+		
+	SET @res=@lv1+@lv2+@lv3+@lv4;
+	RETURN @res;
+END
+
+
+' 
+END
+
+GO

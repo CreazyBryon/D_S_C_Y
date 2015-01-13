@@ -1,0 +1,59 @@
+﻿SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+IF NOT EXISTS (SELECT * FROM sys.views WHERE object_id = OBJECT_ID(N'[dbo].[View_GDT_Metal]'))
+EXEC dbo.sp_executesql @statement = N'
+
+
+
+CREATE VIEW [dbo].[View_GDT_Metal]
+AS
+select convert(date,
+		  (case len([time]) 
+			when 7 then  [time]+''-01''
+			when 4 then  [time]+''-01-01''	
+			else [time]	
+			end			
+		  )
+		  ,120) as ''re_date''
+		,[price] as ''price''
+		,[code] as ''KeyWord''
+		,''custeel'' AS Src
+		,0 AS id
+from cne.CusteelData
+where [price] <> ''-'' and [price] <> '''' AND CONVERT(FLOAT,[price]) <> 0
+union all
+select (case when n.CodeType=''Monthly'' and len(m.[times])=7  then CONVERT(varchar(10),DATEADD(day,-1,DATEADD(month,1,left(replace(m.[times],''-'',''''),6)+''01'')),120)
+             when n.CodeType=''Quarterly'' and right(left(m.[times],7),2)=''01'' and len(m.[times])=7 then left(m.[times],4)+''-03-31''
+             when n.CodeType=''Quarterly'' and right(left(m.[times],7),2)=''02'' and len(m.[times])=7 then left(m.[times],4)+''-06-30''
+             when n.CodeType=''Quarterly'' and right(left(m.[times],7),2)=''03'' and len(m.[times])=7 then left(m.[times],4)+''-09-30''
+             when n.CodeType=''Quarterly'' and right(left(m.[times],7),2)=''04'' and len(m.[times])=7 then left(m.[times],4)+''-12-31''
+             when n.CodeType=''Yearly''  and len(m.[times])=4 then left(m.[times],4)+''-12-31''
+             else (case len(m.[times]) 
+					when 7 then  m.[times]+''-01''
+					when 4 then  m.[times]+''-01-01''	
+					else m.[times]	
+					end	)
+        end) as ''re_date''
+		,m.[value] as ''price''
+		,m.[code] as ''KeyWord''
+		,''mysteel'' AS Src
+		,m.id
+from MySteel.RTMS_TABLEDATA m
+ left join [CnE].[MySteel].[RTMS_CodeType] n on m.code=n.Code
+WHERE m.status=0 AND ISNUMERIC(m.[value])=1 AND  m.[value] <> ''-'' and m.[value] <> '''' AND (CONVERT(FLOAT,[value]) <> 0 OR m.code=''YS_0000068608'')
+UNION ALL
+select convert(date,[updateDate],120) as ''re_date''
+	,[lowestPrice] as ''price''
+	,[code] as ''KeyWord''
+	,''SMM'' AS Src
+	,id
+from [cne].[metals_smm_shanghai]
+WHERE CAST(lowestPrice AS NUMERIC(18,2))>0 AND lanuage=0
+
+
+
+
+' 
+GO

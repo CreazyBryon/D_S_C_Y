@@ -1,0 +1,28 @@
+﻿SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[SdLocalRefinery].[GasolineValuation]') AND type in (N'U'))
+BEGIN
+CREATE TABLE [SdLocalRefinery].[GasolineValuation](
+	[ProductName] [nvarchar](50) NULL,
+	[ModelName] [nvarchar](50) NULL,
+	[AreaName] [nvarchar](50) NULL,
+	[Unit] [nvarchar](50) NULL,
+	[PriceDate] [date] NOT NULL,
+	[Price] [numeric](18, 2) NULL,
+	[ChangeRate] [float] NULL,
+	[CreateDate] [datetime] NULL,
+PRIMARY KEY CLUSTERED 
+(
+	[PriceDate] ASC
+)WITH (PAD_INDEX  = OFF, STATISTICS_NORECOMPUTE  = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS  = ON, ALLOW_PAGE_LOCKS  = ON) ON [PRIMARY]
+) ON [PRIMARY]
+END
+GO
+IF NOT EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF__GasolineV__Creat__7A3D10E0]') AND type = 'D')
+BEGIN
+ALTER TABLE [SdLocalRefinery].[GasolineValuation] ADD  DEFAULT (getdate()) FOR [CreateDate]
+END
+
+GO

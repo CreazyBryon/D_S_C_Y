@@ -1,0 +1,48 @@
+﻿SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[createMaxEnergyGasTable]') AND type in (N'P', N'PC'))
+BEGIN
+EXEC dbo.sp_executesql @statement = N'
+
+
+
+CREATE proc [dbo].[createMaxEnergyGasTable]
+as
+delete [dbo].[GDT_EnergyGasMax]
+insert into [dbo].[GDT_EnergyGasMax] select * from (
+			SELECT 
+			   m.[id] as KeyWord
+			  ,a.[re_date]
+			  ,CONVERT(float, a.[price]) AS price
+			  ,m.[Product_EN]
+			  ,m.[Product_CN]
+			  ,m.[Model_EN]
+			  ,m.[Model_CN]
+			  ,m.[Area_EN]
+			  ,m.[Area_CN]
+			  ,m.[Company_EN]
+			  ,m.[Company_CN]
+			  ,m.[City_CN]
+			  ,m.[City_EN]
+			  ,m.[Unit_EN]
+			  ,m.[Unit_CN]
+			  ,a.[memo] [Memo_EN]
+			  ,a.[memo] [Memo_CN]
+			  ,m.[id] as orderKey     
+			  ,m.[DataSource_CN]
+              ,m.[DataSource_EN] 
+            FROM [dbo].[GDT_EnergyGasMap]  AS m   
+            INNER JOIN   ( select m.[KeyWord],convert(datetime,m.re_date,120) as re_date,m.[price],m.[memo]
+						   FROM [dbo].[View_GDT_Energy] m 
+						   inner join(
+                                     select n.[KeyWord],max(convert(datetime,n.re_date,120) ) ''re_date'' 
+									 FROM [dbo].[View_GDT_Energy] n 
+									 group by n.[KeyWord] 
+						 ) a on m.[KeyWord]=a.[KeyWord] and m.re_date=a.re_date 
+           ) AS a ON m.[id] = a.[KeyWord]
+) as datasource  
+' 
+END
+GO

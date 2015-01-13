@@ -1,0 +1,40 @@
+﻿SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[FN_GetDataCode]') AND type in (N'FN', N'IF', N'TF', N'FS', N'FT'))
+BEGIN
+execute dbo.sp_executesql @statement = N'
+
+CREATE FUNCTION [dbo].[FN_GetDataCode]
+(
+	@src NVARCHAR(100),
+	@pro NVARCHAR(100),	
+	@category NVARCHAR(100),
+	@range NVARCHAR(100)	
+)
+RETURNS NVARCHAR(100)
+AS
+BEGIN
+
+	
+	DECLARE @res NVARCHAR(100);
+	
+	DECLARE @lv1 NVARCHAR(10);	
+	DECLARE @lv2 NVARCHAR(10);		
+	DECLARE @lv3 NVARCHAR(10);		
+	DECLARE @lv4 NVARCHAR(10);		
+	
+	SELECT @lv1 = code FROM dbo.GDT_DataCodeDict WHERE groups=@src AND  [level]=1 AND name=@src
+	SELECT @lv2 = code FROM dbo.GDT_DataCodeDict WHERE groups=@src AND   [level]=2 AND name=@pro		
+	SELECT @lv3 = code FROM dbo.GDT_DataCodeDict WHERE groups=@src AND   [level]=3 AND name=@category 
+	SELECT @lv4 = code FROM dbo.GDT_DataCodeDict WHERE groups=@src AND   [level]=4 AND name=@range
+		
+	SET @res=@lv1+@lv2+@lv3+@lv4;
+	RETURN @res;
+END
+
+' 
+END
+
+GO

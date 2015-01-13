@@ -1,0 +1,27 @@
+﻿SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[GDT_AgricultureMap]') AND type in (N'U'))
+BEGIN
+CREATE TABLE [dbo].[GDT_AgricultureMap](
+	[id] [int] NOT NULL,
+	[Product_EN] [nvarchar](255) NULL,
+	[Product_CN] [nvarchar](255) NULL,
+	[KeyWord] [nvarchar](255) NULL,
+	[GN_TXT16_2] [nvarchar](255) NULL,
+	[SYMBOL] [nvarchar](255) NULL,
+	[DSPLY_NAME] [nvarchar](255) NULL,
+	[RIC] [nvarchar](255) NULL,
+	[Province_CN] [nvarchar](255) NULL,
+	[City_CN] [nvarchar](255) NULL,
+	[Province_EN] [nvarchar](255) NULL,
+	[City_EN] [nvarchar](255) NULL,
+	[Grade_CN] [nvarchar](255) NULL,
+	[Grade_EN] [nvarchar](255) NULL,
+	[DataSource] [nvarchar](255) NULL,
+	[Unit_CN] [nvarchar](max) NULL,
+	[Unit_EN] [nvarchar](max) NULL
+) ON [PRIMARY]
+END
+GO

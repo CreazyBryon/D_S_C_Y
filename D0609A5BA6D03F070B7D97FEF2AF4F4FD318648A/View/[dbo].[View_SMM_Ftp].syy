@@ -1,0 +1,33 @@
+﻿SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+IF NOT EXISTS (SELECT * FROM sys.views WHERE object_id = OBJECT_ID(N'[dbo].[View_SMM_Ftp]'))
+EXEC dbo.sp_executesql @statement = N'
+
+
+CREATE VIEW [dbo].[View_SMM_Ftp]
+AS
+SELECT data.code,data.re_date,data.datavalue,data.syncTime,
+ProductName_EN, Specification_EN, Grade_EN, Brand_EN, Location_EN, Locationofproduction_EN, Producer_EN, DataType_EN, Unit_EN, UpdateFrequency_EN, 
+ProductName_CN, Specification_CN, Grade_CN, Brand_CN, Location_CN, Locationofproduction_CN, Producer_CN, DataType_CN, Unit_CN, UpdateFrequency_CN
+ FROM (
+SELECT [code]
+      ,[updateDate] AS re_date
+      ,[lowestPrice] AS datavalue
+      ,[updateDateTime] AS synctime
+  FROM [cne].[metals_smm_shanghai]
+  WHERE Lanuage=0
+UNION
+SELECT [code]
+      ,[priceDate]    
+      ,[figure]
+      ,[fetchTime]
+  FROM [dbo].[metals_smm_industry]
+  WHERE  Lanuage=0
+) AS data
+JOIN dbo.GDT_CusteelSmm_DataMapping AS map ON map.DataSource_eN=''smm'' AND data.code=map.Code
+
+
+' 
+GO

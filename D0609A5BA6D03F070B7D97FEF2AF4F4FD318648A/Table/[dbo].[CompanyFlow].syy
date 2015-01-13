@@ -1,0 +1,17 @@
+﻿SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[CompanyFlow]') AND type in (N'U'))
+BEGIN
+CREATE TABLE [dbo].[CompanyFlow](
+	[re_date] [date] NULL,
+	[areaName] [nvarchar](max) NULL,
+	[sheetName] [nvarchar](max) NULL,
+	[areaNum] [numeric](18, 2) NULL,
+	[unit] [nvarchar](max) NULL,
+	[isTotal] [bit] NULL,
+	[createTime] [datetime] NULL
+) ON [PRIMARY]
+END
+GO

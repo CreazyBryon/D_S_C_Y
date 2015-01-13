@@ -1,0 +1,29 @@
+﻿SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+IF NOT EXISTS (SELECT * FROM sys.views WHERE object_id = OBJECT_ID(N'[dbo].[View_Longzhong_SdLocalIndex_Ftp]'))
+EXEC dbo.sp_executesql @statement = N'
+
+
+
+
+
+
+CREATE  view [dbo].[View_Longzhong_SdLocalIndex_Ftp]
+as 
+SELECT * FROM (
+SELECT ''OC0601'' AS code,Gasoline AS indexvalue,ReDate,CreateDate,N''汽油指数'' AS indextype  FROM SdLocalRefinery.GasolineIndex 
+UNION
+SELECT ''OC0701'',DieselIndex,ReDate,CreateDate,N''柴油指数'' AS indextype  FROM SdLocalRefinery.DieselIndex
+) AS data
+
+
+
+
+
+
+
+
+' 
+GO

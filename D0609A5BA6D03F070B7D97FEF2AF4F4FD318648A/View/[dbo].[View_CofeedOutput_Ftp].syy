@@ -1,0 +1,26 @@
+﻿SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+IF NOT EXISTS (SELECT * FROM sys.views WHERE object_id = OBJECT_ID(N'[dbo].[View_CofeedOutput_Ftp]'))
+EXEC dbo.sp_executesql @statement = N'
+
+
+
+CREATE  view [dbo].[View_CofeedOutput_Ftp]
+as 
+select  (CASE [typeName] WHEN N''大豆压榨量'' THEN N''CF010300''
+		  WHEN N''豆粕产量'' THEN N''CF020300''
+		  WHEN N''豆油产量'' THEN N''CF030300''
+		END )  AS code, 		
+       startTime, [endTime],  [weekNo]
+       ,[typeCount] AS [output],N''吨'' AS unit
+       ,[createtime],[typeName] AS productname
+from [CnE].[dbo].[CofeedProduct] 
+
+
+
+
+
+' 
+GO

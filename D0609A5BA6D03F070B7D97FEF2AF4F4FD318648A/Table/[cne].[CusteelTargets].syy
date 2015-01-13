@@ -1,0 +1,20 @@
+﻿SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[cne].[CusteelTargets]') AND type in (N'U'))
+BEGIN
+CREATE TABLE [cne].[CusteelTargets](
+	[targetsName] [nvarchar](50) NULL,
+	[targetName] [nvarchar](50) NULL,
+	[code] [nvarchar](50) NULL,
+	[CreateDate] [datetime] NULL
+) ON [PRIMARY]
+END
+GO
+IF NOT EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF__CusteelTa__Creat__15FA39EE]') AND type = 'D')
+BEGIN
+ALTER TABLE [cne].[CusteelTargets] ADD  DEFAULT (getdate()) FOR [CreateDate]
+END
+
+GO

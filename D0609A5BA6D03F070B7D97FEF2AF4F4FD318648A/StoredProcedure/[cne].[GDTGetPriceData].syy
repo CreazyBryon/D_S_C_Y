@@ -1,0 +1,52 @@
+﻿SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[cne].[GDTGetPriceData]') AND type in (N'P', N'PC'))
+BEGIN
+EXEC dbo.sp_executesql @statement = N'CREATE PROCEDURE [cne].[GDTGetPriceData]  
+@chartSp nvarchar(50)=''AgriculturePriceData''  , 
+@key nvarchar(50)  ,  
+@start datetime,
+@end datetime,
+@isExport INT,
+@avg float output             
+AS  
+  if (@chartSp=''AgriculturePriceData'')
+  begin
+       exec [cne].[GetAgriculturePriceData] @key,@start,@end,@isExport,@avg output
+  end
+  if (@chartSp=''EnergyPriceData'')
+  begin
+       exec [cne].[GetEnergyPriceData] @key,@start,@end,@isExport,@avg output
+  end
+  if (@chartSp=''EnergyOil'')
+  begin
+       exec [cne].[GetEnergyOilPriceData] @key,@start,@end,@isExport,@avg output
+  end
+  if(@chartSp=''ChemicalPriceDate'')
+  begin
+  --[cne].[GetChemicalPriceData] 
+       --declare @chenicalId int
+       --set @chenicalId=convert(int,@key)
+       exec [cne].[GetChemicalPriceData]  @key,@start,@end,@isExport,@avg output 
+  end 
+  if(@chartSp=''FanYaPriceData'')
+  begin 
+    exec [dbo].[FetchFanYaChartData] @key,@start,@end,@isExport,@avg output
+  end
+  if(@chartSp=''MetalPriceData'')
+  begin 
+    exec [cne].[GetMetalPriceData] @key,@start,@end,@isExport,@avg output
+  end   
+  if(@chartSp=''ShangShippingPriceData'')
+    begin  
+     exec [cne].[GetShangShippingPriceData]  @key,@start,@end,@isExport,@avg output
+    end 
+  if(@chartSp=''FanYaExponent'')
+  begin 
+    exec dbo.FanYaExponentDataProc  @key,@start,@end,@isExport,@avg output
+  end
+' 
+END
+GO

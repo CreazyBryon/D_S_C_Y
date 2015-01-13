@@ -1,0 +1,25 @@
+﻿SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[UpdateOrInsertRTMS_TABLEDATA]') AND type in (N'P', N'PC'))
+BEGIN
+EXEC dbo.sp_executesql @statement = N'-- =============================================
+-- Author:		wss
+-- Create date: 2014-09-22
+-- Description:	将一个Table作为存储过程的参数实现数据同步更新
+-- =============================================
+CREATE PROCEDURE UpdateOrInsertRTMS_TABLEDATA
+	@dt MySteelTempTable READONLY
+AS
+BEGIN
+	Merge Into [MySteel].[RTMS_TABLEDATA] T
+	using @dt S on T.id=S.id
+	When Matched  Then Update set T.[code]=S.[code],T.[times]=S.[times],T.[value]=S.[value],T.[status]=S.[status],T.[lastAccess]=S.[lastAccess],T.[dLastAccess]=S.[dLastAccess]
+	When Not Matched By Target Then Insert ([id],[code],[times],[value],[status],[lastAccess],[dLastAccess]) values (S.[id],S.[code],S.[times],S.[value],S.[status],S.[lastAccess],S.[dLastAccess])
+    ;
+    --When Not Matched By Source Then --Delete;
+END
+' 
+END
+GO

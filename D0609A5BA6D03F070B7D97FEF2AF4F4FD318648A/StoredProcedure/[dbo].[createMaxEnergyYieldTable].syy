@@ -1,0 +1,120 @@
+﻿SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[createMaxEnergyYieldTable]') AND type in (N'P', N'PC'))
+BEGIN
+EXEC dbo.sp_executesql @statement = N'
+CREATE PROCEDURE [dbo].[createMaxEnergyYieldTable] 
+AS
+BEGIN
+	TRUNCATE TABLE dbo.GDT_EnergyYieldMax
+	--step one: update the latest date
+	
+	--zcx
+	INSERT INTO dbo.GDT_EnergyYieldMax
+			( KeyWord ,
+			  ProductName_CN ,
+			  ProductName_EN ,
+			  Unit_CN ,
+			  Unit_EN ,
+			  DataSource_CN ,
+			  DataSource_EN ,
+			  DATA_FREQ_PAR ,
+			  UpdateTime,      
+			  [LatestDate],
+			  ThisMonthProduction
+			)
+	SELECT KeyWord,ProductName_CN,ProductName_EN,Unit_CN,Unit_EN,DataSource_CN,DataSource_EN,DATA_FREQ_PAR,CCXEID,end_date,CONVERT(NUMERIC(18,2),yield) FROM (
+		SELECT 
+		ROW_NUMBER() OVER(PARTITION BY b.KeyWord ORDER BY a.end_date DESC) AS RN,
+		 b.KeyWord, b.ProductName_CN, b.ProductName_EN, b.Unit_CN, b.Unit_EN, b.DataSource_CN, b.DataSource_EN, b.DATA_FREQ_PAR, b.UpdateTime,
+		 a.CCXEID,a.end_date,a.yield
+		 FROM CnE_ZCX.dbo.ZCX_EnergyYieldData AS a
+		JOIN dbo.GDT_EnergyYieldMap AS b ON a.code=b.KeyWord
+		WHERE a.yield IS NOT NULL
+		) AS ss
+	WHERE ss.RN=1
+		
+	--longzhong
+	INSERT INTO dbo.GDT_EnergyYieldMax
+         ( KeyWord ,
+           ProductName_CN ,
+           ProductName_EN ,
+           Unit_CN ,
+           Unit_EN ,
+           DataSource_CN ,
+           DataSource_EN ,
+           DATA_FREQ_PAR,
+           UpdateTime ,
+		   [LatestDate],
+		   [ThisMonthProduction]
+         )
+	SELECT KeyWord,ProductName_CN,ProductName_EN,Unit_CN,Unit_EN,DataSource_CN,DataSource_EN,DATA_FREQ_PAR,CreateDate,end_date,CONVERT(NUMERIC(18,2),yield) FROM (
+		SELECT 
+		ROW_NUMBER() OVER(PARTITION BY b.KeyWord ORDER BY a.end_date DESC) AS RN,
+		 b.KeyWord, b.ProductName_CN, b.ProductName_EN, b.Unit_CN, b.Unit_EN, b.DataSource_CN, b.DataSource_EN, b.DATA_FREQ_PAR, b.UpdateTime,
+		 a.CreateDate,a.end_date,a.yield
+		 FROM dbo.LongZhong_Yield AS a
+		JOIN dbo.GDT_EnergyYieldMap AS b ON a.code=b.KeyWord
+		WHERE a.yield <> ''0''
+		) AS ss
+	WHERE ss.RN=1 
+	
+	
+	--step 2,get old data 
+	--lz
+	UPDATE a SET a.[LastMonthProduction]=CONVERT(NUMERIC(18,2), b.yield),a.[SamePeriodOfLastYear]=CONVERT(NUMERIC(18,2), c.yield),
+	a.[YTDProduction] =(
+	SELECT SUM(CONVERT(NUMERIC(18,2), d.yield)) AS sumY FROM dbo.LongZhong_Yield AS d
+	WHERE a.KeyWord=d.code AND d.end_date BETWEEN (CAST(YEAR( a.LatestDate ) AS VARCHAR(10))+''-01-01'') AND DATEADD(DAY ,1,  a.LatestDate )
+	),
+	a.[YTDOfLastYear] =(
+	SELECT SUM(CONVERT(NUMERIC(18,2), d.yield)) AS sumY FROM dbo.LongZhong_Yield AS d
+	WHERE a.KeyWord=d.code AND d.end_date BETWEEN (CAST(YEAR( a.LatestDate )-1 AS VARCHAR(10))+''-01-01'') AND DATEADD(YEAR , -1, a.LatestDate)
+	)
+	 FROM  dbo.GDT_EnergyYieldMax AS a
+	LEFT JOIN (
+		SELECT 
+		ROW_NUMBER() OVER(PARTITION BY aa.code ORDER BY aa.end_date DESC) AS RN,		 
+		 aa.code,aa.end_date,aa.yield
+		 FROM dbo.LongZhong_Yield AS aa 
+		WHERE aa.yield <> ''0''
+	) AS b ON b.code=a.KeyWord AND b.RN = 2 	
+	LEFT JOIN dbo.LongZhong_Yield AS c ON a.KeyWord=c.code AND DATEADD(YEAR ,-1,  a.LatestDate)  =   c.end_date 
+	WHERE a.DataSource_EN=''Oilchem''
+	
+	--zcx
+	UPDATE a SET a.[LastMonthProduction]=CONVERT(NUMERIC(18,2), b.yield),a.[SamePeriodOfLastYear]=CONVERT(NUMERIC(18,2), c.yield),
+	a.[YTDProduction] =(
+	SELECT SUM(CONVERT(NUMERIC(18,2), d.yield)) AS sumY FROM CnE_ZCX.dbo.ZCX_EnergyYieldData AS d
+	WHERE a.KeyWord=d.code AND d.end_date BETWEEN (CAST(YEAR( a.LatestDate ) AS VARCHAR(10))+''-01-01'') AND DATEADD(DAY ,1, a.LatestDate)
+	),
+	a.[YTDOfLastYear] =(
+	SELECT SUM(CONVERT(NUMERIC(18,2), d.yield)) AS sumY FROM CnE_ZCX.dbo.ZCX_EnergyYieldData AS d
+	WHERE a.KeyWord=d.code AND d.end_date BETWEEN (CAST(YEAR(a.LatestDate)-1 AS VARCHAR(10))+''-01-01'') AND DATEADD(YEAR ,-1, a.LatestDate )
+	)
+	 FROM  dbo.GDT_EnergyYieldMax AS a
+	LEFT JOIN (
+	SELECT 
+	ROW_NUMBER() OVER(PARTITION BY aa.code ORDER BY aa.end_date DESC) AS RN,		 
+	 aa.code,aa.end_date,aa.yield
+	 FROM CnE_ZCX.dbo.ZCX_EnergyYieldData AS aa 
+	WHERE aa.yield IS NOT NULL
+	) AS b ON b.code=a.KeyWord AND b.RN = 2 	
+	LEFT JOIN CnE_ZCX.dbo.ZCX_EnergyYieldData AS c ON a.KeyWord=c.code AND DATEADD(YEAR ,-1,  a.LatestDate )  =  c.end_date
+	WHERE a.DataSource_EN=''nbs''	
+	
+	--step 3,calc ratio
+	UPDATE dbo.GDT_EnergyYieldMax SET 
+					MoM=CONVERT(NUMERIC(18,2),((ThisMonthProduction- LastMonthProduction )/LastMonthProduction)*100),
+					YoY=CONVERT(NUMERIC(18,2),((ThisMonthProduction- SamePeriodOfLastYear )/SamePeriodOfLastYear)*100),
+					YTDoYTD=CONVERT(NUMERIC(18,2),((YTDProduction- YTDOfLastYear )/YTDOfLastYear)*100)
+	 
+END
+
+
+
+' 
+END
+GO

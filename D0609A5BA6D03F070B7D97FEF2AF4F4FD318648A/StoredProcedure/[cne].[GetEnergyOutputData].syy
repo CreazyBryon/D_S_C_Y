@@ -1,0 +1,31 @@
+﻿SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[cne].[GetEnergyOutputData]') AND type in (N'P', N'PC'))
+BEGIN
+EXEC dbo.sp_executesql @statement = N'
+CREATE  PROCEDURE [cne].[GetEnergyOutputData] 
+@key nvarchar(50)          
+AS  
+ 
+ IF LEFT(@key,1)=''A''
+ BEGIN
+	SELECT (CASE WHEN @key=''A002'' THEN CONVERT(FLOAT,[yield])/10 ELSE CONVERT(FLOAT,[yield]) END) ''output''
+	,CONVERT(varchar(10), [end_date], 23)   as re_date
+	FROM [CnE_ZCX].[dbo].[ZCX_EnergyYieldData]
+	where   [code]=@key AND [yield] IS NOT NULL AND [yield]<>''0''
+	order by [re_date] 
+ END
+ ELSE	IF LEFT(@key,1)=''L''
+ BEGIN
+	SELECT (CASE WHEN @key=''LZ003'' THEN CONVERT(FLOAT,[yield])/10 ELSE CONVERT(FLOAT,[yield]) END) ''output''
+	,CONVERT(varchar(10), [end_date], 23)   as re_date
+	FROM [CnE].[dbo].[LongZhong_Yield]
+	where   [code]=@key AND [yield] IS NOT NULL AND [yield]<>''0''
+	order by [re_date] 
+ END
+ 
+' 
+END
+GO

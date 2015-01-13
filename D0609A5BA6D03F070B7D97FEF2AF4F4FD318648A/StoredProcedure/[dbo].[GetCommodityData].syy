@@ -1,0 +1,23 @@
+﻿SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[GetCommodityData]') AND type in (N'P', N'PC'))
+BEGIN
+EXEC dbo.sp_executesql @statement = N'  CREATE proc [dbo].[GetCommodityData] 
+  @startDate datetime,
+  @endTine datetime,
+  @ntitle nvarchar(max) 
+  as 
+  declare @sql nvarchar(max)  
+  set @sql=
+  ''select [NewsId],[NewsTitle],[NewsTime] '' 
+  +''FROM [CnE].[dbo].[REUTERSNEWSINFO_] ''
+  +''where [NewsTime]>=''''''+convert(nvarchar(max),@startDate,120)+'''''' and [NewsTime]<''''''+convert(nvarchar(max),dateadd(day,1,@endTine),120) +''''''''
+  if(@ntitle!=null and @ntitle!='''') 
+  begin 
+   set @sql=@sql+'' and [NewsTitle] like ''''%''+@ntitle+''%''''''
+  end 
+  exec( @sql)' 
+END
+GO

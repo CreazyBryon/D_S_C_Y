@@ -1,0 +1,18 @@
+﻿SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[LongZhong_OilPrice]') AND type in (N'U'))
+BEGIN
+CREATE TABLE [dbo].[LongZhong_OilPrice](
+	[id] [int] NOT NULL,
+	[priceDate] [nvarchar](50) NULL,
+	[memo] [nvarchar](max) NULL,
+	[price] [nvarchar](50) NULL,
+	[zsyPrice] [nvarchar](50) NULL,
+	[zshPrice] [nvarchar](50) NULL,
+	[updateDate] [nvarchar](50) NULL,
+	[fetchunix] [datetime] NULL
+) ON [PRIMARY]
+END
+GO

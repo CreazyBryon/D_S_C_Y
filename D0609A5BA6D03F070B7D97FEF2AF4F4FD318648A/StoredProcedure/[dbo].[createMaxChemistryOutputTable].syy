@@ -1,0 +1,153 @@
+﻿SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[createMaxChemistryOutputTable]') AND type in (N'P', N'PC'))
+BEGIN
+EXEC dbo.sp_executesql @statement = N' 
+CREATE  PROCEDURE [dbo].[createMaxChemistryOutputTable] 
+AS
+BEGIN
+	DELETE FROM dbo.GDT_ChemistryOutputMax
+	--step one: update the latest date
+	
+	--zcx
+	INSERT INTO dbo.GDT_ChemistryOutputMax
+			(  KeyWord
+			, LatestDate
+			, ThisMonthProduction
+			, ProductName_CN
+			, ProductName_EN
+			, Unit_CN
+			, Unit_EN
+			, DataSource_CN
+			, DataSource_EN
+			, DATA_FREQ_PAR
+			, Variety_CN
+			, Variety_EN
+			, Remark_CN
+			, Remark_EN
+			, UpdateTime
+			)
+	SELECT ss.KeyWord
+			, ss.redate
+			, ss.[output]
+			, ss.ProductName_CN
+			, ss.ProductName_EN
+			, ss.Unit_CN
+			, ss.Unit_EN
+			, ss.DataSource_CN
+			, ss.DataSource_EN
+			, ss.DATA_FREQ_PAR
+			, ss.Variety_CN
+			, ss.Variety_EN
+			, ss.Remark_CN
+			, ss.Remark_EN
+			, ss.SyncTime
+		FROM (
+		SELECT b.*,a.[output],a.redate,a.SyncTime
+		 FROM (
+		 SELECT ROW_NUMBER() OVER(PARTITION BY code ORDER BY end_date DESC) AS RN,code,[output],end_date AS redate,SyncTime FROM CnE_ZCX.dbo.ZCX_ChemistryOutputData
+		 ) AS a
+		JOIN dbo.GDT_ChemistryOutputMap AS b ON a.RN = 1 AND  a.code=b.KeyWord 
+		) AS ss 
+		
+	--longzhong
+		INSERT INTO dbo.GDT_ChemistryOutputMax
+			(  KeyWord
+			, LatestDate
+			, ThisMonthProduction
+			, ProductName_CN
+			, ProductName_EN
+			, Unit_CN
+			, Unit_EN
+			, DataSource_CN
+			, DataSource_EN
+			, DATA_FREQ_PAR
+			, Variety_CN
+			, Variety_EN
+			, Remark_CN
+			, Remark_EN
+			, UpdateTime
+			)
+	SELECT ss.KeyWord
+			, ss.redate
+			, ss.yield
+			, ss.ProductName_CN
+			, ss.ProductName_EN
+			, ss.Unit_CN
+			, ss.Unit_EN
+			, ss.DataSource_CN
+			, ss.DataSource_EN
+			, ss.DATA_FREQ_PAR
+			, ss.Variety_CN
+			, ss.Variety_EN
+			, ss.Remark_CN
+			, ss.Remark_EN
+			, ss.CreateDate
+		FROM (
+		SELECT b.*,a.yield,a.redate,a.CreateDate
+		 FROM (
+		 SELECT ROW_NUMBER() OVER(PARTITION BY code ORDER BY end_date DESC) AS RN,code,yield,end_date AS redate,CreateDate FROM dbo.LongZhong_Yield WHERE yield<>''0''
+		 ) AS a
+		JOIN dbo.GDT_ChemistryOutputMap AS b ON a.RN = 1 AND  a.code=b.KeyWord 
+		) AS ss 
+		
+ 
+	
+	----step 2,get old data 
+	--lz
+	UPDATE a SET a.[LastMonthProduction]=CONVERT(NUMERIC(18,2), b.yield),a.[SamePeriodOfLastYear]=CONVERT(NUMERIC(18,2), c.yield),
+	a.[YTDProduction] =(
+	SELECT SUM(CONVERT(NUMERIC(18,2), d.yield)) AS sumY FROM dbo.LongZhong_Yield AS d
+	WHERE a.KeyWord=d.code AND d.end_date BETWEEN (CAST(YEAR( a.LatestDate ) AS VARCHAR(10))+''-01-01'') AND DATEADD(DAY ,1,  a.LatestDate )
+	),
+	a.[YTDOfLastYear] =(
+	SELECT SUM(CONVERT(NUMERIC(18,2), d.yield)) AS sumY FROM dbo.LongZhong_Yield AS d
+	WHERE a.KeyWord=d.code AND d.end_date BETWEEN (CAST(YEAR( a.LatestDate )-1 AS VARCHAR(10))+''-01-01'') AND DATEADD(YEAR , -1, a.LatestDate)
+	)
+	 FROM  dbo.GDT_ChemistryOutputMax AS a
+	LEFT JOIN (
+		SELECT 
+		ROW_NUMBER() OVER(PARTITION BY aa.code ORDER BY aa.end_date DESC) AS RN,		 
+		 aa.code,aa.end_date,aa.yield
+		 FROM dbo.LongZhong_Yield AS aa 
+		WHERE aa.yield <> ''0''
+	) AS b ON b.code=a.KeyWord AND b.RN = 2 	
+	LEFT JOIN dbo.LongZhong_Yield AS c ON a.KeyWord=c.code AND DATEADD(YEAR ,-1,  a.LatestDate)  =   c.end_date 
+	WHERE a.DataSource_EN=''Oilchem''
+	
+	----zcx
+	UPDATE a SET a.[LastMonthProduction]=CONVERT(NUMERIC(18,2), b.[output]),a.[SamePeriodOfLastYear]=CONVERT(NUMERIC(18,2), c.[output]),
+	a.[YTDProduction] =(
+	SELECT SUM(CONVERT(NUMERIC(18,2), d.[output])) AS sumY FROM CnE_ZCX.dbo.ZCX_ChemistryOutputData AS d
+	WHERE a.KeyWord=d.code AND d.end_date BETWEEN (CAST(YEAR( a.LatestDate ) AS VARCHAR(10))+''-01-01'') AND DATEADD(DAY ,1, a.LatestDate)
+	),
+	a.[YTDOfLastYear] =(
+	SELECT SUM(CONVERT(NUMERIC(18,2), d.[output])) AS sumY FROM CnE_ZCX.dbo.ZCX_ChemistryOutputData AS d
+	WHERE a.KeyWord=d.code AND d.end_date BETWEEN (CAST(YEAR(a.LatestDate)-1 AS VARCHAR(10))+''-01-01'') AND DATEADD(YEAR ,-1, a.LatestDate )
+	)
+	 FROM  dbo.GDT_ChemistryOutputMax AS a
+	LEFT JOIN (
+	SELECT 
+	ROW_NUMBER() OVER(PARTITION BY aa.code ORDER BY aa.end_date DESC) AS RN,		 
+	 aa.code,aa.end_date,aa.[output]
+	 FROM CnE_ZCX.dbo.ZCX_ChemistryOutputData AS aa 
+	WHERE aa.[output] IS NOT NULL
+	) AS b ON b.code=a.KeyWord AND b.RN = 2 	
+	LEFT JOIN CnE_ZCX.dbo.ZCX_ChemistryOutputData AS c ON a.KeyWord=c.code AND DATEADD(YEAR ,-1,  a.LatestDate )  =  c.end_date
+	WHERE a.DataSource_EN=''nbs''	
+	
+	----step 3,calc ratio
+	UPDATE dbo.GDT_ChemistryOutputMax SET 
+					MoM=CONVERT(NUMERIC(18,2),((ThisMonthProduction- LastMonthProduction )/LastMonthProduction)*100),
+					YoY=CONVERT(NUMERIC(18,2),((ThisMonthProduction- SamePeriodOfLastYear )/SamePeriodOfLastYear)*100),
+					YTDoYTD=CONVERT(NUMERIC(18,2),((YTDProduction- YTDOfLastYear )/YTDOfLastYear)*100)
+	 
+END
+
+
+
+' 
+END
+GO

@@ -1,0 +1,49 @@
+﻿SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[createMaxChemicalIndustryTable]') AND type in (N'P', N'PC'))
+BEGIN
+EXEC dbo.sp_executesql @statement = N'
+
+
+CREATE proc [dbo].[createMaxChemicalIndustryTable]
+as
+insert into [CnE].[dbo].[GDT_ChemicalIndustryMax] select * from (SELECT 
+
+a.[KeyWord] as [KeyWord]
+      ,m.[ProductName_CN]
+      ,m.[ModelName_CN]
+      ,m.[Area_CN]
+      ,m.[Producer_CN]
+      ,m.[Unit_CN]
+      ,a.[Memo] as Memo_CN
+      ,m.[ProductName_EN]
+      ,m.[ModelName_EN]
+      ,m.[Area_EN]
+      ,m.[Producer_EN]
+      ,m.[Unit_EN]
+      ,a.[Memo] as Memo_EN
+      ,m.[MarcketName_CN]
+      ,m.[MacketName_EN]
+      ,a.[price]
+      ,a.highprice,
+      a.lowprice,
+      a.re_date,
+      a.pricetype_cn
+      ,a.pricetype_en
+      ,m.[id] as orderKey
+      ,m.dataSource_cn,
+      m.dataSource_en
+            FROM [CnE].[dbo].[GDT_ChemicalIndustryMap]  AS m   
+              INNER JOIN  
+            ( select m.[KeyWord],convert(datetime,m.re_date,120) as re_date,m.[price] ,highprice,lowprice,pricetype_cn,pricetype_en,m.memo
+            FROM [dbo].[View_GDT_ChemicalIndustry] m 
+             inner join(
+              select n.[KeyWord],max(convert(datetime,n.re_date,120) ) ''re_date'' 
+             FROM [dbo].[View_GDT_ChemicalIndustry] n 
+             group by n.[KeyWord] 
+            ) a on m.[KeyWord]=a.[KeyWord] and m.re_date=a.re_date 
+           ) AS a ON m.[id] = a.[KeyWord]) as datasource  ' 
+END
+GO

@@ -1,0 +1,31 @@
+﻿SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+IF NOT EXISTS (SELECT * FROM sys.views WHERE object_id = OBJECT_ID(N'[dbo].[View_Longzhong_SdLocalValuation_Ftp]'))
+EXEC dbo.sp_executesql @statement = N'
+
+
+
+
+
+
+
+
+
+CREATE  view [dbo].[View_Longzhong_SdLocalValuation_Ftp]
+as 
+SELECT * FROM (
+SELECT ''OC0801'' AS code,N''汽油'' AS ProductName, ModelName, AreaName, Unit AS Unit_CN,''CNY/Tonne'' AS Unit_EN, PriceDate, Price, ChangeRate,N''国四标准'' AS stand, CreateDate,N''汽油估价'' AS valuetype
+  FROM SdLocalRefinery.GasolineValuation
+UNION
+SELECT ''OC0901'' AS code,N''柴油'', ModelName, AreaName, Unit,''CNY/Tonne'' , PriceDate, Price, ChangeRate,N''国三标准'', CreateDate,N''柴油估价'' AS valuetype
+  FROM SdLocalRefinery.DieselValuation
+) AS data
+
+
+
+
+
+' 
+GO

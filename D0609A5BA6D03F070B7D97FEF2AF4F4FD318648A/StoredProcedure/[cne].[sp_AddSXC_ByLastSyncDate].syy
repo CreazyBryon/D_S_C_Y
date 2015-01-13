@@ -1,0 +1,53 @@
+﻿SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[cne].[sp_AddSXC_ByLastSyncDate]') AND type in (N'P', N'PC'))
+BEGIN
+EXEC dbo.sp_executesql @statement = N'
+-- =============================================
+-- Author:		wangshuaishuai
+-- Create date: 2013-12-19
+-- Description:	add shanxicoal data by lastSyncDate
+-- =============================================
+CREATE PROCEDURE [cne].[sp_AddSXC_ByLastSyncDate]
+	@lastSyncDate varchar(20) 
+AS
+BEGIN
+	declare shanxi_Cursor Cursor Scroll For
+	SELECT [TableID]
+		  ,[RowID]
+		  ,[RowName]
+		  ,[ColumnID]
+		  ,[DataInfo]
+		  ,[Day]
+	FROM [cne].[ShanXiCoalWebData] 
+	where [SysDate]>@lastSyncDate
+	
+	open shanxi_Cursor
+	declare @TableID int
+	declare @RowID int
+	declare @RowName nvarchar(50)
+	declare @ColumnID int
+	declare @DataInfo nvarchar(50)
+	declare @Day varchar(20)
+	
+	set @TableID=0
+	
+	while @@Fetch_status=0
+	begin
+	if(@TableID<>0)
+		begin
+		exec cne.sp_UpdateSXC_BySql @TableID,@RowID,@RowName,@ColumnID,@DataInfo,@Day
+		end
+	fetch next from shanxi_Cursor into @TableID,@RowID,@RowName,@ColumnID,@DataInfo,@Day
+	end
+	
+	close shanxi_Cursor
+	deallocate shanxi_Cursor
+	
+END
+
+' 
+END
+GO
