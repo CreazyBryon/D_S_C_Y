@@ -1,0 +1,24 @@
+﻿SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[GDT_ChemistryOutputMap]') AND type in (N'U'))
+BEGIN
+CREATE TABLE [dbo].[GDT_ChemistryOutputMap](
+	[id] [int] NOT NULL,
+	[KeyWord] [nvarchar](100) NULL,
+	[ProductName_CN] [nvarchar](100) NULL,
+	[ProductName_EN] [nvarchar](100) NULL,
+	[Unit_CN] [nvarchar](50) NULL,
+	[Unit_EN] [nvarchar](50) NULL,
+	[DataSource_CN] [nvarchar](50) NULL,
+	[DataSource_EN] [nvarchar](50) NULL,
+	[DATA_FREQ_PAR] [nvarchar](50) NULL,
+	[Variety_CN] [nvarchar](50) NULL,
+	[Variety_EN] [nvarchar](50) NULL,
+	[Remark_CN] [nvarchar](100) NULL,
+	[Remark_EN] [nvarchar](100) NULL,
+	[UpdateTime] [datetime] NULL
+) ON [PRIMARY]
+END
+GO

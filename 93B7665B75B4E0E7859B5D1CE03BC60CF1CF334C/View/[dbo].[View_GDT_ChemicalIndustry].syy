@@ -1,0 +1,45 @@
+﻿SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+IF NOT EXISTS (SELECT * FROM sys.views WHERE object_id = OBJECT_ID(N'[dbo].[View_GDT_ChemicalIndustry]'))
+EXEC dbo.sp_executesql @statement = N'
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+CREATE view [dbo].[View_GDT_ChemicalIndustry]
+
+
+as
+select convert(nvarchar(30),id)+''_1'' as keyWord,CONVERT(DATETIME,[priceDate],120) as re_date,[price],[lowPrice],[highPrice] ,N''国际价格'' as PriceType_CN,''InternationalPrice'' AS PriceType_EN ,memo from [dbo].[LongZhong_InternationalPrice]
+where price!=''0.0''
+union all
+select convert(nvarchar(30),id)+''_3'' as keyWord,CONVERT(DATETIME,[priceDate],120) as re_date,[price],[lowPrice] ,[highPrice] ,N''国内价格'' as PriceType_CN,''NationalPrice'' AS PriceType_EN,memo from [dbo].[LongZhong_NationalPrice]
+where price!=''0.0''
+union all 
+select convert(nvarchar(30),id)+''_2'' as keyWord,CONVERT(DATETIME,[priceDate],120) as re_date,[price],null as lowPrice,null as [highPrice],N''出厂价格'' as PriceType_CN,''LeaveFactoryPrice'' AS PriceType_EN ,memo from [dbo].[LongZhong_LeaveFactoryPrice]
+where price!=''0.0''
+
+
+
+
+
+
+
+' 
+GO

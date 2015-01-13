@@ -1,0 +1,45 @@
+﻿SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[cne].[GetMetalOutputData]') AND type in (N'P', N'PC'))
+BEGIN
+EXEC dbo.sp_executesql @statement = N'
+
+CREATE  PROCEDURE [cne].[GetMetalOutputData] 
+@key nvarchar(50)          
+AS  
+ 
+ IF LEFT(@key,3)=''NBS''
+ BEGIN
+	SELECT [ProductPrice] as ''output'',[ReportDate]   as re_date
+	FROM [dbo].[View_metals_nbs_industry]
+	where   [keyword]=@key
+	order by [ReportDate] 
+ END
+ ELSE	IF LEFT(@key,4)=''SMMO''
+ BEGIN
+    SELECT [output] AS  ''output'',[redate]   as re_date
+	FROM [dbo].[View_metals_smm_industry]
+	where   [code]=@key
+	order by re_date
+ END
+ ELSE	IF LEFT(@key,7)=''Custeel''
+ BEGIN
+    SELECT [output] AS  ''output'',[redate]   as re_date
+	FROM [dbo].[View_metals_custeel_industry]
+	where   [code]=@key
+	order by re_date
+ END
+ ELSE	IF LEFT(@key,5)=''CuMar''
+ BEGIN
+    SELECT [Output_Month] AS  ''output'',[re_date]   as re_date
+	FROM [cne].[CusteelMarketingOutputData]
+	where   [code]=@key
+	order by [re_date]
+ END
+ 
+
+' 
+END
+GO

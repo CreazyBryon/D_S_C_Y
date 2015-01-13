@@ -1,0 +1,16 @@
+﻿SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+IF NOT EXISTS (SELECT * FROM sys.views WHERE object_id = OBJECT_ID(N'[cne].[View_ChinaJciWheatCostEstimateDaily]'))
+EXEC dbo.sp_executesql @statement = N'CREATE VIEW [cne].View_ChinaJciWheatCostEstimateDaily
+as
+SELECT  [Product_en]
+      ,[product_cn]
+      ,[cfrom]
+      ,[cfrom_en]
+      ,m.*
+  FROM [CnE].[dbo].[jci_mapping]
+  INNER JOIN [CnE].[cne].ChinaJciWheatCostEstimateDaily m ON [Key]=m.mykey
+' 
+GO

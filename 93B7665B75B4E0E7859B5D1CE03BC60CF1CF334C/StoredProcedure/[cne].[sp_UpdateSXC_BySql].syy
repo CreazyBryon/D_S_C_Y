@@ -1,0 +1,45 @@
+﻿SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[cne].[sp_UpdateSXC_BySql]') AND type in (N'P', N'PC'))
+BEGIN
+EXEC dbo.sp_executesql @statement = N'
+
+
+
+-- =============================================
+-- Author:		wangshuaishuai
+-- Create date: 2013-12-19
+-- Description:	update shanxicoal data by sql
+-- =============================================
+CREATE PROCEDURE [cne].[sp_UpdateSXC_BySql]
+	@TableID int,
+	@RowID int,
+	@RowName nvarchar(50),
+	@ColumnID int,
+	@DataInfo nvarchar(50),
+	@Day varchar(20)
+AS
+BEGIN
+	declare @cmdStr nvarchar(4000)
+	set @cmdStr=''
+	if exists(SELECT [ID] FROM [cne].[ShanXiCoal_''+convert(nvarchar(20),@TableID)+''] where [Day]=''''''+@Day+'''''' and [RowID]=''+convert(nvarchar(20),@RowID)+'')
+		begin
+		update [cne].[ShanXiCoal_''+convert(nvarchar(20),@TableID)+''] set [col_''+convert(nvarchar(20),@ColumnID)+'']=N''''''+@DataInfo+'''''' where [Day]=''''''+@Day+'''''' and [RowID]=''+convert(nvarchar(20),@RowID)+'' 
+		end
+	else
+		begin 
+		insert into [cne].[ShanXiCoal_''+convert(nvarchar(20),@TableID)+'']([Day],[RowID],[RowName],[col_''+convert(nvarchar(20),@ColumnID)+''])values(''''''+@Day+'''''',''+convert(nvarchar(20),@RowID)+'',N''''''+@RowName+'''''',N''''''+@DataInfo+'''''')
+		end
+		''
+	exec (@cmdStr)
+	--print  @cmdStr
+END
+
+
+
+
+' 
+END
+GO

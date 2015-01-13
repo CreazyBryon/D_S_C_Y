@@ -1,0 +1,48 @@
+﻿SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+IF NOT EXISTS (SELECT * FROM sys.views WHERE object_id = OBJECT_ID(N'[dbo].[View_LongzhongPrice_Energy_Ftp]'))
+EXEC dbo.sp_executesql @statement = N'
+
+
+
+
+
+
+CREATE view [dbo].[View_LongzhongPrice_Energy_Ftp]
+as 
+ 
+
+SELECT * FROM 
+(
+select convert(nvarchar(10),a.[id])+''_3'' as keyWord,[priceDate] as re_date,[price],fetchunix AS createTime ,''National'' AS tabType
+from [dbo].[LongZhong_NationalPrice] AS a
+where [price]<>''0.0''
+union all 
+select convert(nvarchar(10),a.[id])+''_2'' as keyWord,[priceDate] as re_date,[price],fetchunix AS createTime ,''LeaveFactory'' AS tabType
+from [dbo].[LongZhong_LeaveFactoryPrice] AS a
+where [price]<>''0.0''
+UNION 
+select convert(nvarchar(10),a.[id])+''_4_1'' as keyWord,[priceDate] as re_date,[zsyPrice] as price,fetchunix AS createTime ,''Oil-zsy'' AS tabType
+from [dbo].[LongZhong_OilPrice] AS a
+where [zsyPrice]<>''0.0''
+union all 
+select convert(nvarchar(10),a.[id])+''_4_2'' as keyWord,[priceDate] as re_date,[zshPrice] as price,fetchunix AS createTime ,''Oil-zsh'' AS tabType
+from [dbo].[LongZhong_OilPrice] AS a
+where [zshPrice]<>''0.0''
+)AS a
+JOIN (
+SELECT id, Product_EN AS ProductName_EN, Product_CN AS ProductName_CN, Model_EN AS ModelName_EN, Model_CN AS ModelName_CN, Area_EN, Area_CN, Unit_EN, Unit_CN , ''EnergyGasMap'' AS mapType
+ FROM dbo.GDT_EnergyGasMap
+UNION 
+SELECT id, Product_EN, Product_CN, Model_EN, Model_CN, Area_EN, Area_CN, Unit_EN, Unit_CN , ''EnergyMap'' AS mapType
+ FROM dbo.GDT_EnergyMap
+) AS b ON a.keyWord=b.id
+ 
+
+
+
+
+' 
+GO

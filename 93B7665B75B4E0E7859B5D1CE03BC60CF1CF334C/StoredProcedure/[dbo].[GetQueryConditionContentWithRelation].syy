@@ -1,0 +1,22 @@
+﻿SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[GetQueryConditionContentWithRelation]') AND type in (N'P', N'PC'))
+BEGIN
+EXEC dbo.sp_executesql @statement = N'
+
+CREATE proc [dbo].[GetQueryConditionContentWithRelation]  
+@tableName nvarchar(max),
+@column nvarchar(max),
+@strWhere nvarchar(max),
+@relationcolumn nvarchar(max),
+@relationValye nvarchar(max)
+  as 
+  declare @sql nvarchar(max)
+  set @sql=''select
+  distinct ''+@column+''  from  ''+@tableName +''  where  ''+@relationcolumn+''= ''''''+@relationValye+'''''' and''+@strWhere+''  order by ''+@column
+  exec(@sql)
+' 
+END
+GO

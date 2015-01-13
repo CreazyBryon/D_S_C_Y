@@ -1,0 +1,36 @@
+﻿SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[ShangHaiShippingMax]') AND type in (N'U'))
+BEGIN
+CREATE TABLE [dbo].[ShangHaiShippingMax](
+	[KeyWord] [nvarchar](max) NULL,
+	[yesterdayClosePrice] [numeric](18, 0) NULL,
+	[yesterdayShettlePrice] [numeric](18, 0) NULL,
+	[openPrice] [numeric](18, 0) NULL,
+	[highestPrice] [numeric](18, 0) NULL,
+	[lowestPrice] [numeric](18, 0) NULL,
+	[price] [numeric](18, 0) NULL,
+	[averagePrice] [numeric](18, 0) NULL,
+	[JiaoGeDate] [nvarchar](max) NULL,
+	[zhangdie] [nvarchar](max) NULL,
+	[TurnoverAmount] [numeric](18, 0) NULL,
+	[ChengjiaoJine] [numeric](18, 0) NULL,
+	[chicang] [numeric](18, 0) NULL,
+	[BuOnePrice] [numeric](18, 0) NULL,
+	[BuyOneAmount] [numeric](18, 0) NULL,
+	[SellOnePrice] [numeric](18, 0) NULL,
+	[selloneAmount] [numeric](18, 0) NULL,
+	[chengjiaotime] [nvarchar](max) NULL,
+	[re_date] [datetime] NULL,
+	[orderkey] [nvarchar](max) NULL,
+	[pricetime] [nvarchar](max) NULL,
+	[rad] [numeric](18, 0) NULL,
+	[cn_cn] [nvarchar](max) NULL,
+	[cn_en] [nvarchar](max) NULL,
+	[unit_cn] [nvarchar](max) NULL,
+	[unit_en] [nvarchar](max) NULL
+) ON [PRIMARY]
+END
+GO

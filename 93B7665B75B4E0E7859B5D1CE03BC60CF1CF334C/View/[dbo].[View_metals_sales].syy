@@ -1,0 +1,40 @@
+﻿SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+IF NOT EXISTS (SELECT * FROM sys.views WHERE object_id = OBJECT_ID(N'[dbo].[View_metals_sales]'))
+EXEC dbo.sp_executesql @statement = N'
+
+
+
+
+
+
+CREATE   view [dbo].[View_metals_sales]
+as 
+--smm
+SELECT a.KeyWord,b.[figure] AS ''sales'',b.[updateDate] AS ''redate'',b.[fetchTime] AS ''CreateDate''
+FROM [dbo].[GDT_MetalSalesMap] a
+INNER JOIN  [dbo].[metals_smm_industry] b ON a.KeyWord=b.code
+UNION ALL
+SELECT b.KeyWord,a.[areaNum] AS ''sales '',a.[re_date]AS ''redate'',a.createTime AS ''CreateDate''
+FROM [dbo].[CompanyFlow] a 
+INNER JOIN [dbo].[GDT_MetalSalesMap] b ON a.[sheetName]=b.[RelatedProductName] AND a.[areaName]=b.[RelatedCategory]
+WHERE b.[AreaOrSale_EN]=N''Statistic Range'' AND a.areaNum<>0
+UNION ALL
+SELECT b.KeyWord,a.datavalue AS ''sales'',a.re_date AS ''redate'',a.[SyncTime] AS ''CreateDate''
+FROM [dbo].[View_CusteelMarketingData] a 
+INNER JOIN [dbo].[GDT_MetalSalesMap] b ON a.Code=b.KeyWord
+WHERE b.[AreaOrSale_EN]=N''Mode'' AND a.datavalue<>0
+UNION ALL
+SELECT ''Cu107201501'' as ''KeyWord'',[ItemValue] AS ''sales'',[MonthDate] AS ''redate'',SyncTime AS ''CreateDate''
+FROM [CUSteel].[HeavyAndMediumPlate]
+WHERE ItemName=N''销售量'' AND ItemValue<>0
+UNION ALL
+SELECT b.KeyWord,a.[ItemValue] AS ''sales'',a.[MonthDate] AS ''redate'',a.[SyncTime] AS ''CreateDate''
+FROM [dbo].[View_ScrapSteelSupplyDemand] a 
+INNER JOIN [dbo].[GDT_MetalSalesMap] b ON a.[sr]=b.[Category_CN]
+WHERE b.ProductName_CN=N''废钢'' AND a.ItemValue<>0
+
+' 
+GO

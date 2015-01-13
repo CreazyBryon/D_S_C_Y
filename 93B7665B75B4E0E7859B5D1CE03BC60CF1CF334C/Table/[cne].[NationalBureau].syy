@@ -1,0 +1,28 @@
+﻿SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[cne].[NationalBureau]') AND type in (N'U'))
+BEGIN
+CREATE TABLE [cne].[NationalBureau](
+	[ID] [int] IDENTITY(1,1) NOT NULL,
+	[ProductName] [nvarchar](50) NULL,
+	[Area] [nvarchar](50) NULL,
+	[CollectName] [nvarchar](50) NULL,
+	[Unit] [nvarchar](20) NULL,
+	[ProductPrice] [decimal](18, 2) NULL,
+	[ReportDate] [date] NULL,
+	[CreateDate] [datetime] NULL,
+PRIMARY KEY CLUSTERED 
+(
+	[ID] ASC
+)WITH (PAD_INDEX  = OFF, STATISTICS_NORECOMPUTE  = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS  = ON, ALLOW_PAGE_LOCKS  = ON) ON [PRIMARY]
+) ON [PRIMARY]
+END
+GO
+IF NOT EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF__NationalB__Creat__58520D30]') AND type = 'D')
+BEGIN
+ALTER TABLE [cne].[NationalBureau] ADD  DEFAULT (getdate()) FOR [CreateDate]
+END
+
+GO

@@ -1,0 +1,38 @@
+﻿SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+IF NOT EXISTS (SELECT * FROM sys.views WHERE object_id = OBJECT_ID(N'[dbo].[View_Longzhong_SdLocalTotalStock_Ftp]'))
+EXEC dbo.sp_executesql @statement = N'
+
+
+
+
+
+
+
+
+
+CREATE  view [dbo].[View_Longzhong_SdLocalTotalStock_Ftp]
+as 
+
+SELECT * FROM (
+SELECT ''OC0201'' AS code,TotalStock AS stock ,ReDate,unit AS Unit_CN,''10KT'' AS Unit_EN ,CreateDate,N''合计'' AS stocktype  FROM SdLocalRefinery.TotalStock 
+UNION
+SELECT ''OC0202'',GasolineStock,ReDate,unit,''10KT'' ,CreateDate,N''汽油''   FROM SdLocalRefinery.TotalStock
+UNION
+SELECT ''OC0203'',DieselStock,ReDate,unit,''10KT'' ,CreateDate,N''柴油''   FROM SdLocalRefinery.TotalStock
+UNION
+SELECT ''OC0204'',GasolineCapacityRate,ReDate,unit,''10KT'',CreateDate,N''汽油库容比''   FROM SdLocalRefinery.TotalStock
+UNION
+SELECT ''OC0205'',DieselCapacityRate,ReDate,unit,''10KT'',CreateDate,N''柴油库容比''   FROM SdLocalRefinery.TotalStock
+
+
+) AS data
+
+
+
+
+
+' 
+GO

@@ -1,0 +1,21 @@
+﻿SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[cne].[ChinaJciSoybeanStocksDaily]') AND type in (N'U'))
+BEGIN
+CREATE TABLE [cne].[ChinaJciSoybeanStocksDaily](
+	[area] [nvarchar](50) NULL,
+	[stock] [nvarchar](50) NULL,
+	[re_date] [nvarchar](50) NULL,
+	[mykey] [nvarchar](50) NULL,
+	[CreateDate] [datetime] NULL
+) ON [PRIMARY]
+END
+GO
+IF NOT EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF__ChinaJciS__Creat__01F34141]') AND type = 'D')
+BEGIN
+ALTER TABLE [cne].[ChinaJciSoybeanStocksDaily] ADD  DEFAULT (getdate()) FOR [CreateDate]
+END
+
+GO

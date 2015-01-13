@@ -1,0 +1,23 @@
+﻿SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+IF NOT EXISTS (SELECT * FROM sys.views WHERE object_id = OBJECT_ID(N'[dbo].[View_CofeedInventory_Ftp]'))
+EXEC dbo.sp_executesql @statement = N'
+
+
+
+
+CREATE VIEW [dbo].[View_CofeedInventory_Ftp]
+AS
+SELECT data.code,data.endTime as re_date,data.areaNo as inventory, data.createtime as syncTime,
+map.ProductName_CN, map.ProductName_EN, Unit_CN, Unit_EN, Area_CN, Area_EN, DataSrc_CN, DataSrc_EN, 
+ UpdateFrequency_CN, UpdateFrequency_EN, Remark_CN 
+FROM dbo.View_CofeedInventoryData   AS data
+JOIN dbo.GDT_AgricultrueInventoryMap AS map ON data.areaNo IS NOT NULL AND   data.code=map.keyword
+
+
+
+
+' 
+GO

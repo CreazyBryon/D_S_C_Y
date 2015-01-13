@@ -1,0 +1,22 @@
+﻿SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[SdLocalRefinery].[DayProduction]') AND type in (N'U'))
+BEGIN
+CREATE TABLE [SdLocalRefinery].[DayProduction](
+	[Code] [nvarchar](50) NULL,
+	[Company] [nvarchar](50) NULL,
+	[ProcessCapacity] [numeric](18, 2) NULL,
+	[Gasoline] [numeric](18, 2) NULL,
+	[Diesel] [numeric](18, 2) NULL,
+	[ReDate] [date] NULL
+) ON [PRIMARY]
+END
+GO
+IF NOT EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF__DayProduc__ReDat__17CD73C7]') AND type = 'D')
+BEGIN
+ALTER TABLE [SdLocalRefinery].[DayProduction] ADD  DEFAULT (getdate()) FOR [ReDate]
+END
+
+GO

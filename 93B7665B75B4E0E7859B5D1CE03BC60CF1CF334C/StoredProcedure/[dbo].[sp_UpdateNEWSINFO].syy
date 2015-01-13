@@ -1,0 +1,20 @@
+﻿SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[sp_UpdateNEWSINFO]') AND type in (N'P', N'PC'))
+BEGIN
+EXEC dbo.sp_executesql @statement = N'CREATE PROCEDURE [dbo].[sp_UpdateNEWSINFO]
+AS
+BEGIN
+  UPDATE aa SET aa.[OrderID]=ss.RN
+  FROM [dbo].[REUTERSNEWSINFO_] AS aa
+  INNER JOIN (
+  SELECT ROW_NUMBER() OVER(PARTITION BY [NewsId] ORDER BY [id] DESC) AS RN,[NewsId],[id]
+  FROM [dbo].[REUTERSNEWSINFO_]
+  )as ss ON aa.id=ss.id
+  
+  DELETE [dbo].[REUTERSNEWSINFO_] WHERE [OrderID]>1
+END' 
+END
+GO

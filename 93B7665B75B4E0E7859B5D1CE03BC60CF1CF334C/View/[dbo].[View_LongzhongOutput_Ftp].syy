@@ -1,0 +1,34 @@
+﻿SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+IF NOT EXISTS (SELECT * FROM sys.views WHERE object_id = OBJECT_ID(N'[dbo].[View_LongzhongOutput_Ftp]'))
+EXEC dbo.sp_executesql @statement = N'
+
+
+
+
+
+CREATE view [dbo].[View_LongzhongOutput_Ftp]
+as 
+ 
+SELECT c.code, cnname, period, end_date, 
+yield, (CASE WHEN a.[code]=''LZ003'' THEN CONVERT(NUMERIC(18,2),yield)/10 ELSE yield END) AS [output],
+CreateDate,
+ProductName_CN, ProductName_EN, Unit_CN, Unit_EN, UpdateFrequency
+ FROM dbo.LongZhong_Yield AS a
+JOIN (
+	SELECT KeyWord, ProductName_CN, ProductName_EN, Unit_CN, Unit_EN, ''Monthly'' AS UpdateFrequency
+	FROM dbo.GDT_ChemistryOutputMap
+	WHERE DataSource_EN=''Oilchem''
+	UNION 
+	SELECT KeyWord, ProductName_CN, ProductName_EN, Unit_CN, Unit_EN, ''Monthly''
+	FROM dbo.GDT_EnergyYieldMap
+	WHERE DataSource_EN=''Oilchem''
+) AS b ON a.code=b.keyWord
+JOIN dbo.GDT_DataCodeMapping AS c ON c.DataSrc=''oilchem'' AND c.ProductName=N''全国产量'' AND a.cnname=c.DataCategory 
+
+
+
+' 
+GO

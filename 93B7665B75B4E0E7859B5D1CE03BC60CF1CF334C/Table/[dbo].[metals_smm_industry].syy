@@ -1,0 +1,20 @@
+﻿SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[metals_smm_industry]') AND type in (N'U'))
+BEGIN
+CREATE TABLE [dbo].[metals_smm_industry](
+	[id] [int] NOT NULL,
+	[code] [nvarchar](50) NOT NULL,
+	[datatype] [nvarchar](max) NULL,
+	[dataname] [nvarchar](max) NULL,
+	[unit] [nvarchar](max) NULL,
+	[figure] [nvarchar](max) NULL,
+	[updateDate] [nvarchar](max) NULL,
+	[fetchTime] [datetime] NULL,
+	[Lanuage] [bit] NOT NULL,
+	[priceDate] [nvarchar](100) NULL
+) ON [PRIMARY]
+END
+GO

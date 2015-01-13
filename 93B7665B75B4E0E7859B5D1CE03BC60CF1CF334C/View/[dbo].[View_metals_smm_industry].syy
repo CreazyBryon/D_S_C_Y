@@ -1,0 +1,26 @@
+﻿SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+IF NOT EXISTS (SELECT * FROM sys.views WHERE object_id = OBJECT_ID(N'[dbo].[View_metals_smm_industry]'))
+EXEC dbo.sp_executesql @statement = N'
+
+
+CREATE view [dbo].[View_metals_smm_industry]
+as 
+SELECT [code]
+      ,CONVERT(FLOAT,figure) AS ''output''
+      ,CONVERT(DATE,
+                     (CASE WHEN LEN([priceDate])=6 OR LEN([priceDate])=7 THEN REPLACE([priceDate],''/'',''-'')+''-01''
+                          WHEN LEN([priceDate])=4 THEN [priceDate]+''-01-01''
+                          ELSE REPLACE([priceDate],''/'',''-'')
+                     end 
+                     )
+              ) as ''redate'',[fetchTime]
+FROM [CnE].[dbo].[metals_smm_industry]
+WHERE [datatype]=N''产量''
+
+
+
+' 
+GO

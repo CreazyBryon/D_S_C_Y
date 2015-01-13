@@ -1,0 +1,289 @@
+﻿SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[createMaxMetalOutputTable]') AND type in (N'P', N'PC'))
+BEGIN
+EXEC dbo.sp_executesql @statement = N'
+
+
+
+
+
+
+
+
+
+ 
+CREATE    PROCEDURE [dbo].[createMaxMetalOutputTable] 
+AS
+BEGIN
+	TRUNCATE TABLE dbo.GDT_MetalOutputMax
+	--step one: update the latest date
+	
+	--NBS
+	INSERT INTO dbo.GDT_MetalOutputMax
+			(  KeyWord
+			, LatestDate
+			, ThisMonthProduction
+			, ProductName_CN
+			, ProductName_EN
+			, Unit_CN
+			, Unit_EN
+			, DataSource_CN
+			, DataSource_EN
+			, Category_CN
+			, Category_EN
+			, Remark_CN
+			, Remark_EN
+			, UpdateTime
+			)
+	SELECT ss.KeyWord
+			, ss.redate
+			, ss.[output]
+			, ss.ProductName_CN
+			, ss.ProductName_EN
+			, ss.Unit_CN
+			, ss.Unit_EN
+			, ss.DataSource_CN
+			, ss.DataSource_EN
+			, ss.Category_CN
+			, ss.Category_EN
+			, '''' as Remark_CN
+			, '''' AS Remark_EN
+			, ss.[CreateDate]
+		FROM (
+		SELECT b.*,a.[output],a.redate,a.[CreateDate]
+		 FROM (
+		 SELECT ROW_NUMBER() OVER(PARTITION BY [keyword] ORDER BY [ReportDate] DESC) AS RN,[keyword],[ProductPrice] AS output,[ReportDate] AS redate,[CreateDate] FROM [dbo].[View_metals_nbs_industry]
+		 ) AS a
+		 INNER JOIN dbo.GDT_MetalOutputMap AS b ON a.RN = 1 AND  a.[keyword]=b.[keyword] AND b.DataSource_EN=''NBS''
+		) AS ss 
+		
+	--Custeel	重点企业分营销品种数据
+	INSERT INTO dbo.GDT_MetalOutputMax
+			(  KeyWord
+			, LatestDate
+			, ThisMonthProduction
+			, ProductName_CN
+			, ProductName_EN
+			, Unit_CN
+			, Unit_EN
+			, DataSource_CN
+			, DataSource_EN
+			, Category_CN
+			, Category_EN
+			, Remark_CN
+			, Remark_EN
+			, UpdateTime
+			)
+	SELECT ss.KeyWord
+			, ss.redate
+			, ss.[output]
+			, ss.ProductName_CN
+			, ss.ProductName_EN
+			, ss.Unit_CN
+			, ss.Unit_EN
+			, ss.DataSource_CN
+			, ss.DataSource_EN
+			, ss.Category_CN
+			, ss.Category_EN
+			, '''' as Remark_CN
+			, '''' AS Remark_EN
+			, ss.[SyncTime]
+		FROM (
+		SELECT b.*,a.[output],a.redate,a.[code],a.[SyncTime]
+		 FROM (
+		 SELECT ROW_NUMBER() OVER(PARTITION BY [code] ORDER BY [re_date] DESC) AS RN,[code],[Output_Month] AS output,[re_date] AS redate,[SyncTime] FROM [cne].[CusteelMarketingOutputData]
+		 ) AS a
+		 INNER JOIN dbo.GDT_MetalOutputMap AS b ON a.RN = 1 AND  a.[code]=b.KeyWord AND b.DataSource_EN=''Custeel''
+		) AS ss 
+		
+    --Custeel	路透——中联钢未标准化数据
+	INSERT INTO dbo.GDT_MetalOutputMax
+			(  KeyWord
+			, LatestDate
+			, ThisMonthProduction
+			, ProductName_CN
+			, ProductName_EN
+			, Unit_CN
+			, Unit_EN
+			, DataSource_CN
+			, DataSource_EN
+			, Category_CN
+			, Category_EN
+			, Remark_CN
+			, Remark_EN
+			, UpdateTime
+			)
+	SELECT ss.KeyWord
+			, ss.redate
+			, ss.[output]
+			, ss.ProductName_CN
+			, ss.ProductName_EN
+			, ss.Unit_CN
+			, ss.Unit_EN
+			, ss.DataSource_CN
+			, ss.DataSource_EN
+			, ss.Category_CN
+			, ss.Category_EN
+			, ss.Remark_CN AS Remark_CN
+			, ss.Remark_EN AS Remark_EN
+			, ss.[SyncTime]
+		FROM (
+		SELECT b.*,a.[output],a.redate,a.[code],a.Remark_CN,a.Remark_EN,a.[SyncTime]
+		 FROM (
+		 SELECT ROW_NUMBER() OVER(PARTITION BY [code] ORDER BY redate DESC) AS RN,[code],[output],redate,Remark_CN,Remark_EN,[SyncTime] FROM [dbo].[View_metals_custeel_industry] WHERE [output]<>''0''
+		 ) AS a
+		 INNER JOIN dbo.GDT_MetalOutputMap AS b ON a.RN = 1 AND  a.[code]=b.KeyWord AND b.DataSource_EN=''Custeel''
+		) AS ss 
+		
+	--SMM	
+	INSERT INTO dbo.GDT_MetalOutputMax
+			(  KeyWord
+			, LatestDate
+			, ThisMonthProduction
+			, ProductName_CN
+			, ProductName_EN
+			, Unit_CN
+			, Unit_EN
+			, DataSource_CN
+			, DataSource_EN
+			, Category_CN
+			, Category_EN
+			, Remark_CN
+			, Remark_EN
+			, UpdateTime
+			)
+	SELECT ss.KeyWord
+			, ss.redate
+			, ss.[output]
+			, ss.ProductName_CN
+			, ss.ProductName_EN
+			, ss.Unit_CN
+			, ss.Unit_EN
+			, ss.DataSource_CN
+			, ss.DataSource_EN
+			, ss.Category_CN
+			, ss.Category_EN
+			, '''' AS Remark_CN
+			, '''' AS Remark_EN
+			, ss.[fetchTime]
+		FROM (
+		SELECT b.*,a.[output],a.redate,a.[code],a.[fetchTime]
+		 FROM (
+		 SELECT ROW_NUMBER() OVER(PARTITION BY [code] ORDER BY redate DESC) AS RN,[code],[output],redate,[fetchTime] FROM [dbo].[View_metals_smm_industry]
+		 ) AS a
+		 INNER JOIN dbo.GDT_MetalOutputMap AS b ON a.RN = 1 AND  a.[code]=b.KeyWord AND b.DataSource_EN=''SMM''
+		) AS ss 
+ 
+	
+	--step 2,get old data 
+	--NBS
+	UPDATE a SET a.[LastMonthProduction]=CONVERT(NUMERIC(18,2), b.[ProductPrice]),a.[SamePeriodOfLastYear]=CONVERT(NUMERIC(18,2), c.[ProductPrice]),
+	a.[YTDProduction] =(
+	SELECT SUM(CONVERT(NUMERIC(18,2), d.[ProductPrice])) AS sumY FROM [dbo].[View_metals_nbs_industry]AS d
+	WHERE a.keyword=d.keyword  AND d.[ReportDate] BETWEEN (CAST(YEAR( a.LatestDate ) AS VARCHAR(10))+''-01-01'') AND DATEADD(DAY ,1,  a.LatestDate )
+	),
+	a.[YTDOfLastYear] =(
+	SELECT SUM(CONVERT(NUMERIC(18,2), d.[ProductPrice])) AS sumY FROM [dbo].[View_metals_nbs_industry]AS d
+	WHERE a.keyword=d.keyword  AND d.[ReportDate] BETWEEN (CAST(YEAR( a.LatestDate )-1 AS VARCHAR(10))+''-01-01'') AND DATEADD(YEAR , -1, a.LatestDate)
+	)
+	 FROM  dbo.GDT_MetalOutputMax AS a
+	LEFT JOIN (
+		SELECT 
+		ROW_NUMBER() OVER(PARTITION BY aa.keyword ORDER BY aa.[ReportDate] DESC) AS RN,		 
+		 aa.keyword,aa.[ReportDate],aa.[ProductPrice]
+		 FROM [dbo].[View_metals_nbs_industry]AS aa 
+	) AS b ON b.keyword=a.keyword   AND b.RN = 2 	
+	LEFT JOIN [dbo].[View_metals_nbs_industry]AS c ON a.keyword=c.keyword  AND DATEADD(YEAR ,-1,  a.LatestDate)  =   c.[ReportDate] 
+	WHERE a.DataSource_EN=''NBS''
+	
+	--Custeel 重点企业分营销品种数据
+	UPDATE a SET a.[LastMonthProduction]= b.[Output_Month]
+	,a.[SamePeriodOfLastYear]=c.[Output_Month]
+	,a.[YTDProduction] =(
+	SELECT SUM(d.[Output_Month]) AS sumY FROM [cne].[CusteelMarketingOutputData] AS d
+	WHERE a.KeyWord=d.code AND d.re_date BETWEEN (CAST(YEAR( a.LatestDate ) AS VARCHAR(10))+''-01-01'') AND DATEADD(DAY ,1,  a.LatestDate )
+	)
+	,a.[YTDOfLastYear] =(
+	SELECT SUM(d.[Output_Month]) AS sumY FROM [cne].[CusteelMarketingOutputData] AS d
+	WHERE a.KeyWord=d.code AND  d.re_date BETWEEN (CAST(YEAR( a.LatestDate )-1 AS VARCHAR(10))+''-01-01'') AND DATEADD(YEAR , -1, a.LatestDate)
+	)
+	 FROM  dbo.GDT_MetalOutputMax AS a
+	LEFT JOIN (
+		SELECT 
+		ROW_NUMBER() OVER(PARTITION BY aa.code ORDER BY aa.re_date DESC) AS RN,		 
+		 aa.code,aa.Output_Month,aa.re_date
+		 FROM [cne].[CusteelMarketingOutputData] AS aa 
+	) AS b ON b.code=a.KeyWord AND b.RN = 2 	
+	LEFT JOIN [cne].[CusteelMarketingOutputData] AS c ON a.KeyWord=c.code  AND DATEADD(YEAR ,-1,  a.LatestDate)  =   c.re_date 
+	WHERE a.DataSource_EN=''Custeel'' AND LEFT(KeyWord,5)=''CuMar''
+	
+	--Custeel 路透——中联钢未标准化数据
+	UPDATE a SET a.[LastMonthProduction]= b.[output]
+	,a.[SamePeriodOfLastYear]=c.[output]
+	,a.[YTDProduction] =(
+	SELECT SUM(d.[output]) AS sumY FROM [dbo].[View_metals_custeel_industry] AS d
+	WHERE a.KeyWord=d.code AND d.[redate] BETWEEN (CAST(YEAR( a.LatestDate ) AS VARCHAR(10))+''-01-01'') AND DATEADD(DAY ,1,  a.LatestDate )
+	)
+	,a.[YTDOfLastYear] =(
+	SELECT SUM(d.[output]) AS sumY FROM [dbo].[View_metals_custeel_industry] AS d
+	WHERE a.KeyWord=d.code AND  d.[redate] BETWEEN (CAST(YEAR( a.LatestDate )-1 AS VARCHAR(10))+''-01-01'') AND DATEADD(YEAR , -1, a.LatestDate)
+	)
+	 FROM  dbo.GDT_MetalOutputMax AS a
+	LEFT JOIN (
+		SELECT 
+		ROW_NUMBER() OVER(PARTITION BY aa.code ORDER BY aa.[redate] DESC) AS RN,		 
+		 aa.code,aa.[output],aa.[redate]
+		 FROM [dbo].[View_metals_custeel_industry] AS aa 
+	) AS b ON b.code=a.KeyWord AND b.RN = 2 	
+	LEFT JOIN [dbo].[View_metals_custeel_industry] AS c ON a.KeyWord=c.code  AND DATEADD(YEAR ,-1,  a.LatestDate)  =   c.redate 
+	WHERE a.DataSource_EN=''Custeel'' AND LEFT(KeyWord,7)=''Custeel''
+	
+	--SMM
+	UPDATE a SET a.[LastMonthProduction]= b.output
+	,a.[SamePeriodOfLastYear]=c.output
+	,a.[YTDProduction] =(
+	SELECT SUM(d.output) AS sumY FROM [dbo].[View_metals_smm_industry] AS d
+	WHERE a.KeyWord=d.code AND d.redate BETWEEN (CAST(YEAR( a.LatestDate ) AS VARCHAR(10))+''-01-01'') AND DATEADD(DAY ,1,  a.LatestDate )
+	)
+	,a.[YTDOfLastYear] =(
+	SELECT SUM(d.output) AS sumY FROM [dbo].[View_metals_smm_industry] AS d
+	WHERE a.KeyWord=d.code AND  d.redate BETWEEN (CAST(YEAR( a.LatestDate )-1 AS VARCHAR(10))+''-01-01'') AND DATEADD(YEAR , -1, a.LatestDate)
+	)
+	 FROM  dbo.GDT_MetalOutputMax AS a
+	LEFT JOIN (
+		SELECT 
+		ROW_NUMBER() OVER(PARTITION BY aa.code ORDER BY aa.redate DESC) AS RN,		 
+		 aa.code,aa.output,aa.redate
+		 FROM [dbo].[View_metals_smm_industry] AS aa 
+	) AS b ON b.code=a.KeyWord AND b.RN = 2 	
+	LEFT JOIN [dbo].[View_metals_smm_industry] AS c ON a.KeyWord=c.code  AND DATEADD(YEAR ,-1,  a.LatestDate)=c.redate 
+	WHERE a.DataSource_EN=''SMM''
+	
+	
+	
+	----step 3,calc ratio
+	UPDATE dbo.GDT_MetalOutputMax SET 
+					MoM=CONVERT(NUMERIC(18,2),((ThisMonthProduction- LastMonthProduction )/LastMonthProduction)*100),
+					YoY=CONVERT(NUMERIC(18,2),((ThisMonthProduction- SamePeriodOfLastYear )/SamePeriodOfLastYear)*100),
+					YTDoYTD=CONVERT(NUMERIC(18,2),((YTDProduction- YTDOfLastYear )/YTDOfLastYear)*100)
+	 
+END
+
+
+
+
+
+
+
+
+
+
+
+
+
+' 
+END
+GO

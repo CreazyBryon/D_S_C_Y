@@ -1,0 +1,17 @@
+﻿SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[MySteel].[RTMS_TABLEDATA]') AND type in (N'U'))
+BEGIN
+CREATE TABLE [MySteel].[RTMS_TABLEDATA](
+	[id] [bigint] NOT NULL,
+	[code] [nvarchar](20) NULL,
+	[times] [nvarchar](10) NULL,
+	[value] [nvarchar](20) NULL,
+	[status] [int] NULL,
+	[lastAccess] [bigint] NULL,
+	[dLastAccess] [datetime2](7) NULL
+) ON [PRIMARY]
+END
+GO

@@ -1,0 +1,27 @@
+﻿SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[sp_UpdateCusteelTargets]') AND type in (N'P', N'PC'))
+BEGIN
+EXEC dbo.sp_executesql @statement = N'CREATE PROCEDURE [dbo].[sp_UpdateCusteelTargets]
+AS
+BEGIN
+	MERGE INTO [cne].[CusteelTargets] AS T
+	USING [cne].[CusteelTempTargets] AS S
+	ON T.code=S.code 
+	WHEN MATCHED THEN
+	  UPDATE SET T.[targetName] = S.[targetName],T.[targetsName] = S.[targetsName],T.[CreateDate] = S.[CreateDate]
+	WHEN NOT MATCHED THEN
+	  INSERT  VALUES (S.[targetsName],S.[targetName],S.[code],getdate() )
+	output $action as [action],inserted.[code] as ''插入的code'',
+					   inserted.[targetName] as ''插入的targetName'',
+					   inserted.[targetsName] as ''插入的targetsName'',  
+					   deleted.[code] as ''删除的code'',
+					   deleted.[targetName] as ''删除的targetName'', 
+					   deleted.[targetsName] as ''删除的targetsName'' ;	
+	DELETE cne.CusteelTempTargets 
+END
+' 
+END
+GO

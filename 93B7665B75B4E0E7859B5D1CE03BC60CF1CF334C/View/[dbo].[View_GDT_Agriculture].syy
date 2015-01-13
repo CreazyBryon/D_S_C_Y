@@ -1,0 +1,20 @@
+﻿SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+IF NOT EXISTS (SELECT * FROM sys.views WHERE object_id = OBJECT_ID(N'[dbo].[View_GDT_Agriculture]'))
+EXEC dbo.sp_executesql @statement = N'
+
+
+CREATE VIEW [dbo].[View_GDT_Agriculture]
+AS
+
+select convert(datetime,[date],120) as ''re_date'',[price]as ''price'',[code] as ''KeyWord''
+from [CnE].[dbo].[Cofeed]
+union all
+select [re_date],[price],[mykey] as ''KeyWord''
+from [CnE].[cne].[ChinaJciInternalPrice]
+
+
+' 
+GO

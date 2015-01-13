@@ -1,0 +1,22 @@
+﻿SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[GetQueryConditionContent]') AND type in (N'P', N'PC'))
+BEGIN
+EXEC dbo.sp_executesql @statement = N'
+CREATE   proc [dbo].[GetQueryConditionContent]    
+@tableName nvarchar(max),  
+@queryFilter nvarchar(255),
+@relationcolumn nvarchar(max)
+  as   
+  declare @sql nvarchar(max)  
+  declare @where nvarchar(max) 
+  set @where=@relationcolumn+''_CN!='''''''' and ''+@relationcolumn+''_EN!='''''''' and '' +@relationcolumn+''_CN is not null and ''+@relationcolumn+''_EN is not null ''
+   set @sql=''select  
+		distinct ''+@relationcolumn+''_CN as ItemText_CN,''+@relationcolumn+''_en as ItemText_EN  from  ''+@tableName+'' where ''+@queryFilter+'' and ''+@where+''  order by ItemText_EN''
+  exec(@sql)  
+  --print(@sql) 
+' 
+END
+GO

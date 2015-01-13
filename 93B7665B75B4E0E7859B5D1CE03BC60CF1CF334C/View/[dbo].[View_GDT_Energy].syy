@@ -1,0 +1,24 @@
+﻿SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+IF NOT EXISTS (SELECT * FROM sys.views WHERE object_id = OBJECT_ID(N'[dbo].[View_GDT_Energy]'))
+EXEC dbo.sp_executesql @statement = N'
+
+
+
+
+
+
+CREATE view [dbo].[View_GDT_Energy]
+as
+select convert(nvarchar(10),[id])+''_1'' as keyWord,[priceDate] as re_date,[price],[memo]  from [dbo].[LongZhong_InternationalPrice] where [price]<>''0.0''
+union all
+select convert(nvarchar(10),[id])+''_3'' as keyWord,[priceDate] as re_date,[price],[memo] from [dbo].[LongZhong_NationalPrice] where [price]<>''0.0''
+union all 
+select convert(nvarchar(10),[id])+''_2'' as keyWord,[priceDate] as re_date,[price],[memo] from [dbo].[LongZhong_LeaveFactoryPrice] where [price]<>''0.0''
+
+
+
+' 
+GO

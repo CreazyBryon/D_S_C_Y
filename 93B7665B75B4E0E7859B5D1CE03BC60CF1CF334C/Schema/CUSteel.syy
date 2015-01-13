@@ -1,0 +1,4 @@
+﻿IF NOT EXISTS (SELECT * FROM sys.schemas WHERE name = N'CUSteel')
+EXEC sys.sp_executesql N'CREATE SCHEMA [CUSteel] AUTHORIZATION [dbo]'
+
+GO

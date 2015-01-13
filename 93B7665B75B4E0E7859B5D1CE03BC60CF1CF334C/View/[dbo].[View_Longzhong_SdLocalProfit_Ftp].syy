@@ -1,0 +1,39 @@
+﻿SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+IF NOT EXISTS (SELECT * FROM sys.views WHERE object_id = OBJECT_ID(N'[dbo].[View_Longzhong_SdLocalProfit_Ftp]'))
+EXEC dbo.sp_executesql @statement = N'
+
+
+
+
+
+
+
+
+
+CREATE  view [dbo].[View_Longzhong_SdLocalProfit_Ftp]
+as 
+
+SELECT * FROM (
+SELECT ''OC0301'' AS code,ComprehensiveOfShengliCrude AS profitvalue ,ReDate,unit AS Unit_CN,''CNY/Tonne'' AS Unit_EN ,CreateDate,N''综合利润（胜利原油）'' AS profittype  FROM SdLocalRefinery.Profit 
+UNION
+SELECT ''OC0302'',ComprehensiveOfFuel,ReDate,unit ,''CNY/Tonne'',CreateDate,N''综合利润（燃料油）''   FROM SdLocalRefinery.Profit
+UNION
+SELECT ''OC0303'',VacuumOfShengliCrude,ReDate,unit,''CNY/Tonne'' ,CreateDate,N''常减压利润（胜利原油）''   FROM SdLocalRefinery.Profit
+UNION
+SELECT ''OC0304'',VacuumOfFuel,ReDate,unit,''CNY/Tonne'',CreateDate,N''常减压利润（燃料油）''   FROM SdLocalRefinery.Profit
+UNION
+SELECT ''OC0305'',Catalysis,ReDate,unit,''CNY/Tonne'',CreateDate,N''催化利润''   FROM SdLocalRefinery.Profit
+UNION
+SELECT ''OC0306'',Coking,ReDate,unit,''CNY/Tonne'',CreateDate,N''焦化利润''   FROM SdLocalRefinery.Profit
+
+) AS data
+
+
+
+
+
+' 
+GO

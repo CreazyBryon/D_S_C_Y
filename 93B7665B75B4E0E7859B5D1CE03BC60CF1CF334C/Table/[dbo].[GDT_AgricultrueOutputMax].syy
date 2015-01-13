@@ -1,0 +1,29 @@
+﻿SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[GDT_AgricultrueOutputMax]') AND type in (N'U'))
+BEGIN
+CREATE TABLE [dbo].[GDT_AgricultrueOutputMax](
+	[keyword] [nvarchar](max) NOT NULL,
+	[startTime] [date] NOT NULL,
+	[LatestDate] [date] NOT NULL,
+	[ProductName_cn] [nvarchar](max) NULL,
+	[weekNo] [int] NOT NULL,
+	[ThisMonthProduction] [numeric](18, 2) NOT NULL,
+	[ProductName_en] [nvarchar](max) NULL,
+	[createtime] [datetime] NULL,
+	[unit_cn] [nvarchar](max) NULL,
+	[unit_en] [nvarchar](max) NULL,
+	[DataSource_cn] [nvarchar](max) NULL,
+	[dataSource_en] [nvarchar](max) NULL,
+	[LastMonthProduction] [numeric](18, 2) NULL,
+	[Mom] [numeric](18, 2) NULL,
+	[SamePeriodOfLastYear] [numeric](18, 2) NULL,
+	[YoY] [numeric](18, 2) NULL,
+	[YTDProduct] [numeric](18, 2) NULL,
+	[YTDOfLastYear] [numeric](18, 2) NULL,
+	[YTDoYTD] [numeric](18, 2) NULL
+) ON [PRIMARY]
+END
+GO

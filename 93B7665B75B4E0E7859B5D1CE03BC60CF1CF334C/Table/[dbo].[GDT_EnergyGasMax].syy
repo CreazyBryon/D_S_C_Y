@@ -1,0 +1,30 @@
+﻿SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[GDT_EnergyGasMax]') AND type in (N'U'))
+BEGIN
+CREATE TABLE [dbo].[GDT_EnergyGasMax](
+	[KeyWord] [nvarchar](255) NULL,
+	[re_date] [date] NULL,
+	[price] [float] NULL,
+	[Product_EN] [nvarchar](255) NULL,
+	[Product_CN] [nvarchar](255) NULL,
+	[Model_EN] [nvarchar](255) NULL,
+	[Model_CN] [nvarchar](255) NULL,
+	[Area_EN] [nvarchar](255) NULL,
+	[Area_CN] [nvarchar](255) NULL,
+	[Company_EN] [nvarchar](255) NULL,
+	[Company_CN] [nvarchar](255) NULL,
+	[City_CN] [nvarchar](255) NULL,
+	[City_EN] [nvarchar](255) NULL,
+	[Unit_EN] [nvarchar](10) NULL,
+	[Unit_CN] [nvarchar](10) NULL,
+	[Memo_EN] [nvarchar](255) NULL,
+	[Memo_CN] [nvarchar](255) NULL,
+	[orderKey] [nvarchar](255) NULL,
+	[DataSource_CN] [nvarchar](50) NULL,
+	[DataSource_EN] [nvarchar](50) NULL
+) ON [PRIMARY]
+END
+GO

@@ -1,0 +1,40 @@
+﻿SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[GDT_AgricultrueInventoryMax]') AND type in (N'U'))
+BEGIN
+CREATE TABLE [dbo].[GDT_AgricultrueInventoryMax](
+	[id] [int] IDENTITY(1,1) NOT NULL,
+	[KeyWord] [nvarchar](50) NULL,
+	[LatestDate] [date] NULL,
+	[Inventory] [numeric](18, 2) NULL,
+	[SyncTime] [datetime] NULL,
+	[ProductName_CN] [nvarchar](100) NULL,
+	[ProductName_EN] [nvarchar](100) NULL,
+	[Unit_CN] [nvarchar](50) NULL,
+	[Unit_EN] [nvarchar](50) NULL,
+	[Area_CN] [nvarchar](50) NULL,
+	[Area_EN] [nvarchar](50) NULL,
+	[DataSrc_CN] [nvarchar](50) NULL,
+	[DataSrc_EN] [nvarchar](50) NULL,
+	[Province_CN] [nvarchar](50) NULL,
+	[Province_EN] [nvarchar](50) NULL,
+	[UpdateFrequency_CN] [nvarchar](50) NULL,
+	[UpdateFrequency_EN] [nvarchar](50) NULL,
+	[SYMBOL] [nvarchar](50) NULL,
+	[DSPLY_NAME] [nvarchar](50) NULL,
+	[RIC] [nvarchar](50) NULL,
+	[hisdata] [float] NULL,
+	[Remark_CN] [nvarchar](500) NULL,
+	[Remark_EN] [nvarchar](500) NULL,
+	[CreateTime] [datetime] NULL,
+	[LastMonthInventory] [numeric](18, 2) NULL,
+	[MoM] [numeric](18, 2) NULL,
+ CONSTRAINT [PK_GDT_AgricultrueInventoryMax] PRIMARY KEY CLUSTERED 
+(
+	[id] ASC
+)WITH (PAD_INDEX  = OFF, STATISTICS_NORECOMPUTE  = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS  = ON, ALLOW_PAGE_LOCKS  = ON) ON [PRIMARY]
+) ON [PRIMARY]
+END
+GO

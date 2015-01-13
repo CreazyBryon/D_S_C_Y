@@ -1,0 +1,32 @@
+﻿SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[cne].[FanyaMetalsBackUp]') AND type in (N'U'))
+BEGIN
+CREATE TABLE [cne].[FanyaMetalsBackUp](
+	[ID] [int] IDENTITY(1,1) NOT NULL,
+	[Code] [nvarchar](20) NULL,
+	[OpenPrice] [nvarchar](20) NULL,
+	[HighestPrice] [nvarchar](20) NULL,
+	[LowestPrice] [nvarchar](20) NULL,
+	[BuyOnePrice] [nvarchar](20) NULL,
+	[SaleOnePrice] [nvarchar](20) NULL,
+	[LatestPrice] [nvarchar](20) NULL,
+	[Change] [nvarchar](20) NULL,
+	[TurnoverAmount] [nvarchar](20) NULL,
+	[OrderAmount] [nvarchar](20) NULL,
+	[SettlementPrice] [nvarchar](20) NULL,
+	[YesterdaySettlement] [nvarchar](20) NULL,
+	[BuyAmountOne] [nvarchar](20) NULL,
+	[SaleAmountOne] [nvarchar](20) NULL,
+	[Turnover] [nvarchar](20) NULL,
+	[OrderKey] [nvarchar](20) NULL,
+	[Name] [nvarchar](20) NULL,
+	[QuotationDate] [nvarchar](20) NULL,
+	[QuotationTime] [nvarchar](20) NULL,
+	[CreateDate] [datetime] NULL,
+	[isHistory] [bit] NULL
+) ON [PRIMARY]
+END
+GO

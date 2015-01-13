@@ -1,0 +1,21 @@
+﻿SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[ChuChangProduct]') AND type in (N'U'))
+BEGIN
+CREATE TABLE [dbo].[ChuChangProduct](
+	[id] [int] NOT NULL,
+	[productName] [nvarchar](50) NULL,
+	[modelName] [nvarchar](50) NULL,
+	[areaName] [nvarchar](50) NULL,
+	[unit] [nvarchar](50) NULL,
+	[memo] [nvarchar](max) NULL,
+	[manufactureName] [nvarchar](50) NULL,
+ CONSTRAINT [PK_ChuChangProduct] PRIMARY KEY CLUSTERED 
+(
+	[id] ASC
+)WITH (PAD_INDEX  = OFF, STATISTICS_NORECOMPUTE  = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS  = ON, ALLOW_PAGE_LOCKS  = ON) ON [PRIMARY]
+) ON [PRIMARY]
+END
+GO

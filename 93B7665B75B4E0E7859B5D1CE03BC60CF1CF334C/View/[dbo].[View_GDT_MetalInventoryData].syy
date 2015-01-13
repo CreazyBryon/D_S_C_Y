@@ -1,0 +1,39 @@
+﻿SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+IF NOT EXISTS (SELECT * FROM sys.views WHERE object_id = OBJECT_ID(N'[dbo].[View_GDT_MetalInventoryData]'))
+EXEC dbo.sp_executesql @statement = N'
+
+ 
+
+CREATE view [dbo].[View_GDT_MetalInventoryData]
+as 
+	SELECT code,(CASE LEN(priceDate) WHEN 4 THEN (DATEADD(DAY ,-1, DATEADD(YEAR,1, CONVERT(DATE, priceDate + ''/01/01''))))
+		WHEN 6 THEN (DATEADD(DAY ,-1, DATEADD(MONTH ,1, CONVERT(DATE, priceDate + ''/01''))))
+		WHEN 7 THEN (DATEADD(DAY ,-1, DATEADD(MONTH ,1, CONVERT(DATE,priceDate + ''/01''))))
+		ELSE priceDate
+		end
+	) AS re_date ,figure AS inventory,fetchtime AS syncTime,''smm'' AS src FROM dbo.metals_smm_industry WHERE datatype = ''inventories'' 
+	UNION--------------------------------- 
+	SELECT code,re_date,datavalue AS inventory,SyncTime AS syncTime,''dbo.View_CusteelMarketingData'' AS src 
+	FROM dbo.View_CusteelMarketingData
+	UNION--------------------------------------------------------------------------------------
+	SELECT b.Code,[MonthDate] ,ItemValue, [SyncTime] ,''[CUSteel].[ScrapSteelBaseInventory]''
+	FROM [CUSteel].[ScrapSteelBaseInventory] AS a 
+	join dbo.GDT_DataCodeMapping AS b ON b.ProductName=N''废钢'' AND b.DataCategory=N''库存'' AND a.itemname=b.StantisticalRange
+	UNION-----------------------------------
+	SELECT b.Code,[MonthDate] ,ItemValue, [SyncTime] ,''[CUSteel].[OreBondedAreaInventory]''
+	FROM [CUSteel].[OreBondedAreaInventory] AS a 
+	join dbo.GDT_DataCodeMapping AS b ON b.ProductName=N''铁矿石'' AND b.DataCategory=N''库存'' AND N''保税区库存:''+a.itemname=b.StantisticalRange	
+	UNION--------------------------------------------------------------------------------------
+	SELECT b.Code,[MonthDate] ,ItemValue, [SyncTime] ,''[CUSteel].[HeavyAndMediumPlate]''
+	FROM [CUSteel].[HeavyAndMediumPlate] AS a 
+	join dbo.GDT_DataCodeMapping AS b ON b.ProductName=N''中厚板'' AND b.DataCategory=N''库存'' AND a.itemname= N''库存量'' AND b.StantisticalRange =N''全国钢厂''	
+	UNION--------------------------------------------------------------------------------------	
+	SELECT aa.code,aa.[time] ,aa.price AS stock , aa.CreateDate  ,''cne.CusteelData''
+	FROM cne.CusteelData AS aa
+	JOIN cne.CusteelTargets AS bb ON aa.code=bb.code AND bb.targetName LIKE N''%库存%''
+
+' 
+GO

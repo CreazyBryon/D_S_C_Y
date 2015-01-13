@@ -1,0 +1,118 @@
+﻿SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[createMaxMetalSales]') AND type in (N'P', N'PC'))
+BEGIN
+EXEC dbo.sp_executesql @statement = N'
+
+
+
+
+
+
+
+
+
+
+
+ 
+CREATE    PROCEDURE [dbo].[createMaxMetalSales] 
+AS
+BEGIN
+	TRUNCATE TABLE dbo.GDT_MetalSalesMax
+	--step one: update the latest date
+	
+	INSERT INTO dbo.GDT_MetalSalesMax
+			 ( [KeyWord]
+			  ,[ProductName_CN]
+			  ,[ProductName_EN]
+			  ,[LatestDate]
+			  ,[ThisMonthProduction]
+			  ,[AreaOrSale_CN]
+			  ,[AreaOrSale_EN]
+			  ,[Category_CN]
+			  ,[Category_EN]
+			  ,[Menu_CN]
+			  ,[Menu_EN]
+			  ,[Unit_CN]
+			  ,[Unit_EN]
+			  ,[DataSource_CN]
+			  ,[DataSource_EN]
+			  ,[UpdateTime]
+			)
+	SELECT     ss.[KeyWord]
+			  ,ss.[ProductName_CN]
+			  ,ss.[ProductName_EN]
+			  ,ss.[redate]
+			  ,ss.[sales]
+			  ,ss.[AreaOrSale_CN]
+			  ,ss.[AreaOrSale_EN]
+			  ,ss.[Category_CN]
+			  ,ss.[Category_EN]
+			  ,ss.[Menu_CN]
+			  ,ss.[Menu_EN]
+			  ,ss.[Unit_CN]
+			  ,ss.[Unit_EN]
+			  ,ss.[DataSource_CN]
+			  ,ss.[DataSource_EN]
+			  ,ss.CreateDate AS ''UpdateTime''
+		FROM (
+		SELECT b.*,a.sales,a.redate,a.CreateDate
+		 FROM (
+		 SELECT ROW_NUMBER() OVER(PARTITION BY [keyword] ORDER BY redate DESC) AS RN,[keyword],sales ,redate,CreateDate  FROM [dbo].View_metals_sales
+		 ) AS a
+		 INNER JOIN dbo.GDT_MetalSalesMap AS b ON a.RN = 1 AND  a.[keyword]=b.[keyword]
+		) AS ss 
+		 
+ 
+	
+	--step 2,get old data 
+	
+	UPDATE a SET a.[LastMonthProduction]= b.sales
+	,a.[SamePeriodOfLastYear]=c.sales
+	,a.[YTDProduction] =(
+	SELECT SUM(d.sales) AS sumY FROM [dbo].View_metals_sales AS d
+	WHERE a.KeyWord=d.KeyWord AND d.redate BETWEEN (CAST(YEAR( a.LatestDate ) AS VARCHAR(10))+''-01-01'') AND DATEADD(DAY ,1,  a.LatestDate )
+	)
+	,a.[YTDOfLastYear] =(
+	SELECT SUM(d.sales) AS sumY FROM [dbo].View_metals_sales AS d
+	WHERE a.KeyWord=d.KeyWord AND  d.redate BETWEEN (CAST(YEAR( a.LatestDate )-1 AS VARCHAR(10))+''-01-01'') AND DATEADD(YEAR , -1, a.LatestDate)
+	)
+	 FROM  dbo.GDT_MetalSalesMax AS a
+	LEFT JOIN (
+		SELECT 
+		ROW_NUMBER() OVER(PARTITION BY aa.keyword ORDER BY aa.redate DESC) AS RN,		 
+		 aa.keyword,aa.sales,aa.redate
+		 FROM [dbo].View_metals_sales AS aa 
+	) AS b ON b.KeyWord=a.KeyWord AND b.RN = 2 	
+	LEFT JOIN [dbo].View_metals_sales AS c ON a.KeyWord=c.KeyWord  AND DATEADD(YEAR ,-1,  a.LatestDate)  =   c.redate 
+	
+	
+	
+	
+	----step 3,calc ratio
+	UPDATE dbo.GDT_MetalSalesMax SET 
+					MoM=CONVERT(NUMERIC(18,2),((ThisMonthProduction- LastMonthProduction )/LastMonthProduction)*100),
+					YoY=CONVERT(NUMERIC(18,2),((ThisMonthProduction- SamePeriodOfLastYear )/SamePeriodOfLastYear)*100),
+					YTDoYTD=CONVERT(NUMERIC(18,2),((YTDProduction- YTDOfLastYear )/YTDOfLastYear)*100)
+	 
+END
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+' 
+END
+GO

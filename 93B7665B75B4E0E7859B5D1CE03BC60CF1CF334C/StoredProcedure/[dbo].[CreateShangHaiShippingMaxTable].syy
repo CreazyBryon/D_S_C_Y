@@ -1,0 +1,92 @@
+﻿SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[CreateShangHaiShippingMaxTable]') AND type in (N'P', N'PC'))
+BEGIN
+EXEC dbo.sp_executesql @statement = N'
+
+
+
+
+
+CREATE PROC [dbo].[CreateShangHaiShippingMaxTable] 
+as 
+ delete from [dbo].[ShangHaiShippingMax]
+ insert into [dbo].[ShangHaiShippingMax] select * from(
+select main.*,
+      t.cn_cn
+       ,t.cn_en,
+       t.unit_cn,
+       t.unit_en
+ from(
+select  
+m.[code] as KeyWord
+      ,convert(numeric(18,0),m.[yesterdayClosePrice]/100)as yesterdayClosePrice
+      ,convert(numeric(18,0),m.[yesterdayShettlePrice]/100)as yesterdayShettlePrice
+      ,convert(numeric(18,0),m.[openPrice]/100) as openPrice
+      ,convert(numeric(18,0),m.[highestPrice]/100) as highestPrice
+      ,convert(numeric(18,0),m.[lowestPrice]/100) as lowestPrice
+      ,convert(numeric(18,0),m.[newestPrice]/100)as price
+      ,convert(numeric(18,0),m.[averagePrice]/100) as averagePrice
+      ,convert(nvarchar(max),m.[JiaoGeDate]) as JiaoGeDate
+      ,m.[zhangdie]
+      ,convert(numeric(18,0),m.[TurnoverAmount]) as TurnoverAmount
+      ,convert(numeric(18,0),m.[ChengjiaoJine]) as ChengjiaoJine
+      ,convert(numeric(18,0),m.[chicang]) as chicang
+      ,convert(numeric(18,0),m.[BuOnePrice]/100)as BuOnePrice
+      ,convert(numeric(18,0),m.[BuyOneAmount]) as BuyOneAmount
+      ,convert(numeric(18,0),m.[SellOnePrice]/100) as SellOnePrice
+      ,convert(numeric(18,0),m.[selloneAmount]) as selloneAmount
+      ,m.[chengjiaotime]
+      ,m.[createDateTime] as ''re_date''
+      ,m.[code] as orderkey
+      ,right(left(convert(nvarchar(max),[createDateTime],25),19) ,8) as pricetime
+      ,convert(numeric(18,0),(m.[newestPrice]-m.[yesterdayShettlePrice])/100) as rad
+  FROM [CnE].[dbo].[Sail_Travel_SH]   as m
+  inner join 
+  (
+  SELECT  code,max(createDateTime) as dt
+  FROM [CnE].[dbo].[Sail_Travel_SH] 
+  group by code
+
+  ) as t 
+  on m.code=t.code and t.dt=m.[createDateTime]  
+  ) as main
+  inner join
+  dbo.GDT_Sail_Travel_SHMap as t 
+  on t.code=main.KeyWord
+) as maxTable
+--delete duplicate
+Delete T From
+(Select Row_Number() Over(Partition By 
+[KeyWord]
+      ,[yesterdayClosePrice]
+      ,[yesterdayShettlePrice]
+      ,[openPrice]
+      ,[highestPrice]
+      ,[lowestPrice]
+      ,[price]
+      ,[averagePrice]
+      ,[JiaoGeDate]
+      ,[zhangdie]
+      ,[TurnoverAmount]
+      ,[ChengjiaoJine]
+      ,[chicang]
+      ,[BuOnePrice]
+      ,[BuyOneAmount]
+      ,[SellOnePrice]
+      ,[selloneAmount]
+      ,[chengjiaotime]
+      ,[re_date]
+      ,[orderkey]
+      ,[pricetime]
+      ,[rad]
+      ,[cn_cn]
+      ,[cn_en]
+      ,[unit_cn]
+      ,[unit_en]
+ order By [KeyWord]) As RowNumber,* From [dbo].[ShangHaiShippingMax])T
+Where T.RowNumber > 1' 
+END
+GO

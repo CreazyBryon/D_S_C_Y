@@ -1,0 +1,99 @@
+﻿SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[cne].[FanyaMetals]') AND type in (N'U'))
+BEGIN
+CREATE TABLE [cne].[FanyaMetals](
+	[ID] [int] IDENTITY(1,1) NOT NULL,
+	[Code] [nvarchar](20) NULL,
+	[OpenPrice] [nvarchar](20) NULL,
+	[HighestPrice] [nvarchar](20) NULL,
+	[LowestPrice] [nvarchar](20) NULL,
+	[BuyOnePrice] [nvarchar](20) NULL,
+	[SaleOnePrice] [nvarchar](20) NULL,
+	[LatestPrice] [nvarchar](20) NULL,
+	[Change] [nvarchar](20) NULL,
+	[TurnoverAmount] [nvarchar](20) NULL,
+	[OrderAmount] [nvarchar](20) NULL,
+	[SettlementPrice] [nvarchar](20) NULL,
+	[YesterdaySettlement] [nvarchar](20) NULL,
+	[BuyAmountOne] [nvarchar](20) NULL,
+	[SaleAmountOne] [nvarchar](20) NULL,
+	[Turnover] [nvarchar](20) NULL,
+	[OrderKey] [nvarchar](20) NULL,
+	[Name] [nvarchar](20) NULL,
+	[QuotationDate] [nvarchar](20) NULL,
+	[QuotationTime] [nvarchar](20) NULL,
+	[CreateDate] [datetime] NULL,
+	[isHistory] [bit] NULL,
+PRIMARY KEY CLUSTERED 
+(
+	[ID] ASC
+)WITH (PAD_INDEX  = OFF, STATISTICS_NORECOMPUTE  = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS  = ON, ALLOW_PAGE_LOCKS  = ON) ON [PRIMARY]
+) ON [PRIMARY]
+END
+GO
+IF NOT EXISTS (SELECT * FROM ::fn_listextendedproperty(N'MS_Description' , N'SCHEMA',N'cne', N'TABLE',N'FanyaMetals', N'COLUMN',N'Code'))
+EXEC sys.sp_addextendedproperty @name=N'MS_Description', @value=N'品种代码' , @level0type=N'SCHEMA',@level0name=N'cne', @level1type=N'TABLE',@level1name=N'FanyaMetals', @level2type=N'COLUMN',@level2name=N'Code'
+GO
+IF NOT EXISTS (SELECT * FROM ::fn_listextendedproperty(N'MS_Description' , N'SCHEMA',N'cne', N'TABLE',N'FanyaMetals', N'COLUMN',N'OpenPrice'))
+EXEC sys.sp_addextendedproperty @name=N'MS_Description', @value=N'开盘价' , @level0type=N'SCHEMA',@level0name=N'cne', @level1type=N'TABLE',@level1name=N'FanyaMetals', @level2type=N'COLUMN',@level2name=N'OpenPrice'
+GO
+IF NOT EXISTS (SELECT * FROM ::fn_listextendedproperty(N'MS_Description' , N'SCHEMA',N'cne', N'TABLE',N'FanyaMetals', N'COLUMN',N'HighestPrice'))
+EXEC sys.sp_addextendedproperty @name=N'MS_Description', @value=N'最高价' , @level0type=N'SCHEMA',@level0name=N'cne', @level1type=N'TABLE',@level1name=N'FanyaMetals', @level2type=N'COLUMN',@level2name=N'HighestPrice'
+GO
+IF NOT EXISTS (SELECT * FROM ::fn_listextendedproperty(N'MS_Description' , N'SCHEMA',N'cne', N'TABLE',N'FanyaMetals', N'COLUMN',N'LowestPrice'))
+EXEC sys.sp_addextendedproperty @name=N'MS_Description', @value=N'最低价' , @level0type=N'SCHEMA',@level0name=N'cne', @level1type=N'TABLE',@level1name=N'FanyaMetals', @level2type=N'COLUMN',@level2name=N'LowestPrice'
+GO
+IF NOT EXISTS (SELECT * FROM ::fn_listextendedproperty(N'MS_Description' , N'SCHEMA',N'cne', N'TABLE',N'FanyaMetals', N'COLUMN',N'BuyOnePrice'))
+EXEC sys.sp_addextendedproperty @name=N'MS_Description', @value=N'买一价' , @level0type=N'SCHEMA',@level0name=N'cne', @level1type=N'TABLE',@level1name=N'FanyaMetals', @level2type=N'COLUMN',@level2name=N'BuyOnePrice'
+GO
+IF NOT EXISTS (SELECT * FROM ::fn_listextendedproperty(N'MS_Description' , N'SCHEMA',N'cne', N'TABLE',N'FanyaMetals', N'COLUMN',N'SaleOnePrice'))
+EXEC sys.sp_addextendedproperty @name=N'MS_Description', @value=N'卖一价' , @level0type=N'SCHEMA',@level0name=N'cne', @level1type=N'TABLE',@level1name=N'FanyaMetals', @level2type=N'COLUMN',@level2name=N'SaleOnePrice'
+GO
+IF NOT EXISTS (SELECT * FROM ::fn_listextendedproperty(N'MS_Description' , N'SCHEMA',N'cne', N'TABLE',N'FanyaMetals', N'COLUMN',N'LatestPrice'))
+EXEC sys.sp_addextendedproperty @name=N'MS_Description', @value=N'最新价' , @level0type=N'SCHEMA',@level0name=N'cne', @level1type=N'TABLE',@level1name=N'FanyaMetals', @level2type=N'COLUMN',@level2name=N'LatestPrice'
+GO
+IF NOT EXISTS (SELECT * FROM ::fn_listextendedproperty(N'MS_Description' , N'SCHEMA',N'cne', N'TABLE',N'FanyaMetals', N'COLUMN',N'Change'))
+EXEC sys.sp_addextendedproperty @name=N'MS_Description', @value=N'涨跌' , @level0type=N'SCHEMA',@level0name=N'cne', @level1type=N'TABLE',@level1name=N'FanyaMetals', @level2type=N'COLUMN',@level2name=N'Change'
+GO
+IF NOT EXISTS (SELECT * FROM ::fn_listextendedproperty(N'MS_Description' , N'SCHEMA',N'cne', N'TABLE',N'FanyaMetals', N'COLUMN',N'TurnoverAmount'))
+EXEC sys.sp_addextendedproperty @name=N'MS_Description', @value=N'成交量' , @level0type=N'SCHEMA',@level0name=N'cne', @level1type=N'TABLE',@level1name=N'FanyaMetals', @level2type=N'COLUMN',@level2name=N'TurnoverAmount'
+GO
+IF NOT EXISTS (SELECT * FROM ::fn_listextendedproperty(N'MS_Description' , N'SCHEMA',N'cne', N'TABLE',N'FanyaMetals', N'COLUMN',N'OrderAmount'))
+EXEC sys.sp_addextendedproperty @name=N'MS_Description', @value=N'订货量' , @level0type=N'SCHEMA',@level0name=N'cne', @level1type=N'TABLE',@level1name=N'FanyaMetals', @level2type=N'COLUMN',@level2name=N'OrderAmount'
+GO
+IF NOT EXISTS (SELECT * FROM ::fn_listextendedproperty(N'MS_Description' , N'SCHEMA',N'cne', N'TABLE',N'FanyaMetals', N'COLUMN',N'SettlementPrice'))
+EXEC sys.sp_addextendedproperty @name=N'MS_Description', @value=N'结算价' , @level0type=N'SCHEMA',@level0name=N'cne', @level1type=N'TABLE',@level1name=N'FanyaMetals', @level2type=N'COLUMN',@level2name=N'SettlementPrice'
+GO
+IF NOT EXISTS (SELECT * FROM ::fn_listextendedproperty(N'MS_Description' , N'SCHEMA',N'cne', N'TABLE',N'FanyaMetals', N'COLUMN',N'YesterdaySettlement'))
+EXEC sys.sp_addextendedproperty @name=N'MS_Description', @value=N'昨结算' , @level0type=N'SCHEMA',@level0name=N'cne', @level1type=N'TABLE',@level1name=N'FanyaMetals', @level2type=N'COLUMN',@level2name=N'YesterdaySettlement'
+GO
+IF NOT EXISTS (SELECT * FROM ::fn_listextendedproperty(N'MS_Description' , N'SCHEMA',N'cne', N'TABLE',N'FanyaMetals', N'COLUMN',N'BuyAmountOne'))
+EXEC sys.sp_addextendedproperty @name=N'MS_Description', @value=N'买量一' , @level0type=N'SCHEMA',@level0name=N'cne', @level1type=N'TABLE',@level1name=N'FanyaMetals', @level2type=N'COLUMN',@level2name=N'BuyAmountOne'
+GO
+IF NOT EXISTS (SELECT * FROM ::fn_listextendedproperty(N'MS_Description' , N'SCHEMA',N'cne', N'TABLE',N'FanyaMetals', N'COLUMN',N'SaleAmountOne'))
+EXEC sys.sp_addextendedproperty @name=N'MS_Description', @value=N'卖量一' , @level0type=N'SCHEMA',@level0name=N'cne', @level1type=N'TABLE',@level1name=N'FanyaMetals', @level2type=N'COLUMN',@level2name=N'SaleAmountOne'
+GO
+IF NOT EXISTS (SELECT * FROM ::fn_listextendedproperty(N'MS_Description' , N'SCHEMA',N'cne', N'TABLE',N'FanyaMetals', N'COLUMN',N'Turnover'))
+EXEC sys.sp_addextendedproperty @name=N'MS_Description', @value=N'成交额' , @level0type=N'SCHEMA',@level0name=N'cne', @level1type=N'TABLE',@level1name=N'FanyaMetals', @level2type=N'COLUMN',@level2name=N'Turnover'
+GO
+IF NOT EXISTS (SELECT * FROM ::fn_listextendedproperty(N'MS_Description' , N'SCHEMA',N'cne', N'TABLE',N'FanyaMetals', N'COLUMN',N'OrderKey'))
+EXEC sys.sp_addextendedproperty @name=N'MS_Description', @value=N'顺序' , @level0type=N'SCHEMA',@level0name=N'cne', @level1type=N'TABLE',@level1name=N'FanyaMetals', @level2type=N'COLUMN',@level2name=N'OrderKey'
+GO
+IF NOT EXISTS (SELECT * FROM ::fn_listextendedproperty(N'MS_Description' , N'SCHEMA',N'cne', N'TABLE',N'FanyaMetals', N'COLUMN',N'Name'))
+EXEC sys.sp_addextendedproperty @name=N'MS_Description', @value=N'品种名称' , @level0type=N'SCHEMA',@level0name=N'cne', @level1type=N'TABLE',@level1name=N'FanyaMetals', @level2type=N'COLUMN',@level2name=N'Name'
+GO
+IF NOT EXISTS (SELECT * FROM ::fn_listextendedproperty(N'MS_Description' , N'SCHEMA',N'cne', N'TABLE',N'FanyaMetals', N'COLUMN',N'QuotationDate'))
+EXEC sys.sp_addextendedproperty @name=N'MS_Description', @value=N'行情的日期' , @level0type=N'SCHEMA',@level0name=N'cne', @level1type=N'TABLE',@level1name=N'FanyaMetals', @level2type=N'COLUMN',@level2name=N'QuotationDate'
+GO
+IF NOT EXISTS (SELECT * FROM ::fn_listextendedproperty(N'MS_Description' , N'SCHEMA',N'cne', N'TABLE',N'FanyaMetals', N'COLUMN',N'QuotationTime'))
+EXEC sys.sp_addextendedproperty @name=N'MS_Description', @value=N'行情的时间' , @level0type=N'SCHEMA',@level0name=N'cne', @level1type=N'TABLE',@level1name=N'FanyaMetals', @level2type=N'COLUMN',@level2name=N'QuotationTime'
+GO
+IF NOT EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF__FanyaMeta__Creat__74994623]') AND type = 'D')
+BEGIN
+ALTER TABLE [cne].[FanyaMetals] ADD  DEFAULT (getdate()) FOR [CreateDate]
+END
+
+GO

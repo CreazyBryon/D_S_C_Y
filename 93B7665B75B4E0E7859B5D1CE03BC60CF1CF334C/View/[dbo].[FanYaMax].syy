@@ -1,0 +1,147 @@
+﻿SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+IF NOT EXISTS (SELECT * FROM sys.views WHERE object_id = OBJECT_ID(N'[dbo].[FanYaMax]'))
+EXEC dbo.sp_executesql @statement = N'
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+CREATE view [dbo].[FanYaMax]
+as 
+SELECT TOP 1000 * FROM (
+select 
+case m.Code
+when N''APT'' then N''元/千克''
+when N''VP'' then N''元/千克''
+when N''SB'' then N''元/千克''
+when N''AG'' then N''元/千克''
+when N''GA'' then N''元/千克''
+when N''BI'' then N''元/十千克''
+when N''CO'' then N''元/千克''
+when N''GE'' then N''元/百克''
+when N''IN'' then N''元/百克'' 
+when N''SE'' then N''元/千克''
+when N''TE'' then N''元/千克''
+else ''''
+end as unit_cn,
+case m.Code
+when N''APT'' then N''RMB/KG''
+when N''VP'' then N''RMB/KG''
+when N''SB'' then N''RMB/KG''
+when N''AG'' then N''RMB/KG''
+when N''GA'' then N''RMB/KG''
+when N''BI'' then N''RMB/Ten KG''
+when N''CO'' then N''RMB/KG''
+when N''GE'' then N''RMB/ Hundred Gram''
+when N''IN'' then N''RMB/ Hundred Gram'' 
+when N''SE'' then N''RMB/KG''
+when N''TE'' then N''RMB/KG''
+else ''''
+end as unit_en,
+m.ID, 
+m.Code AS KeyWord,
+CONVERT(FLOAT,m.OpenPrice) AS OpenPrice,
+CONVERT(FLOAT,m.HighestPrice) AS HighestPrice ,
+CONVERT(FLOAT,m.LowestPrice) AS LowestPrice, 
+CONVERT(FLOAT,m.BuyOnePrice) AS BuyOnePrice,
+CONVERT(FLOAT,m.SaleOnePrice) AS SaleOnePrice,
+convert(float,m.LatestPrice) as price,
+CONVERT(FLOAT,m.Change) AS Change, 
+CONVERT(FLOAT,m.TurnoverAmount) AS TurnoverAmount ,
+CONVERT(FLOAT,m.OrderAmount) AS OrderAmount, 
+CONVERT(FLOAT,m.SettlementPrice) AS SettlementPrice,
+CONVERT(FLOAT,m.YesterdaySettlement) AS YesterdaySettlement,
+CONVERT(FLOAT,m.BuyAmountOne) AS BuyAmountOne, 
+CONVERT(FLOAT,m.SaleAmountOne) AS SaleAmountOne, 
+CONVERT(FLOAT,m.Turnover) AS Turnover, 
+m.OrderKey as [order],
+m.Name ,
+
+ --cast(round((convert(float,m.LatestPrice)-convert(float,m.Change),2))as numeric(5,2))
+ 
+ cast(round(convert(float,m.LatestPrice)-convert(float,m.Change),2) as numeric(10,2) )       as Yesterday,
+ --涨幅=（最新价--昨天收盘价）/昨天收盘价*100%
+case   cast(round(convert(float,m.LatestPrice)-convert(float,m.Change),2) as numeric(10,2) )
+when 0.00 then ''''
+else
+cast(cast(round(convert(float,m.Change)/(convert(float,m.LatestPrice)-convert(float,m.Change))*100,2) as  numeric(10,2)) as nvarchar(max))+''%''
+end  
+as yesterday1,
+
+case  m.Code 
+ when N''APT'' then N''ammonium  paratungstate''
+when N''VP'' then N''vanadium pentoxide''
+when N''SB'' then N''antimony''
+when N''AG'' then N''silver''
+when N''GA'' then N''metal Gallium''
+when N''BI'' then N''bismuth''
+when N''CO'' then N''electrowinning cobalt''
+when N''GE'' then N''germanium''
+when N''IN'' then N''indium'' 
+
+when N''TS200'' then N''TS200'' 
+when N''TS500'' then N''TS500'' 
+when N''TS100'' then N''TS100'' 
+when N''TS1000'' then N''TS1000'' 
+when N''SE'' then N''Selenium Powder''
+when N''TE'' then N''Tellurium''
+else ''''
+end as Name_En,
+
+
+convert(datetime,t.priceDate ,120)
+as re_date,
+
+m.CreateDate,
+'''' as orderkey,
+--left(right(convert(nvarchar(max),t.priceTime,120),12),2)+'':''+left(right(right(convert(nvarchar(max),t.priceTime,120),12),4),2)+'':''+right(right(convert(nvarchar(max),t.priceTime,120),12),2) 
+right(convert(nvarchar(max),t.priceTime,120),8) as priceTime
+from [cne].[FanyaMetals] as m
+inner join
+(    
+  select max(testTable.[QuotationTime]) as priceTime ,testTable.[code],
+  
+  MAX(testTable.[priceDate])AS  [priceDate]
+ 
+  from
+     (
+     select 
+     cast( convert(nvarchar(10),v.[CreateDate],120)+'' ''
+        +left( v.[QuotationTime],2)+'':''+left(right( v.[QuotationTime],4),2)+'':''+right( v.[QuotationTime],2) as datetime)
+      as [QuotationTime]
+     ,V.[code],
+      case 
+        when v.[QuotationTime]>=''203000''  then dateadd(day,-1,convert(datetime,V.[QuotationDate],120))
+        else convert(datetime,V.[QuotationDate],120)
+      end  as priceDate
+     from [cne].[FanyaMetals] as v
+     where v.createdate is not null
+     ) as testTable
+     group by testTable.[code]
+       
+ )as t
+on t.[code]=m.[code] and m.[QuotationDate]=t.[priceDate] 
+and 
+cast( convert(nvarchar(10),m.[CreateDate],120)+'' ''
+        +left( m.[QuotationTime],2)+'':''+left(right( m.[QuotationTime],4),2)+'':''+right( m.[QuotationTime],2) as datetime) 
+
+=t.[priceTime] 
+) AS H ORDER BY H.[order] desc
+
+
+
+' 
+GO

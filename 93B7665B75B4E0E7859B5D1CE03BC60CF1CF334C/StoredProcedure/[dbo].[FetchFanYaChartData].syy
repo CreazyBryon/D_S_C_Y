@@ -1,0 +1,89 @@
+﻿SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[FetchFanYaChartData]') AND type in (N'P', N'PC'))
+BEGIN
+EXEC dbo.sp_executesql @statement = N'CREATE proc [dbo].[FetchFanYaChartData]
+ @key nvarchar(50),
+ @start datetime,
+ @end datetime,
+ @isExcel int,
+ @avg float output  
+as 
+
+                
+            declare @sqlWithTime1 nvarchar(max)
+            set @sqlWithTime1=''   select n.[code] as keyword, n.[LatestPrice] as price ,(convert(nvarchar(10),convert(datetime,n.[QuotationDate],120),120)+'''' ''''+left(n.QuotationTime,2)+'''':''''+left(right(n.QuotationTime,4),2)+'''':''''+right(n.QuotationTime,2)) as re_date''
+                  if(@isExcel=1)
+                 begin 
+                  set @sqlWithTime1=''select top 1000 n.[Name],n.[LatestPrice] as price,''+
+                   ''case datediff(day,convert(datetime,n.[QuotationDate],120),n.[CreateDate])
+                  when -1 then convert(nvarchar(10),n.[CreateDate],120)
+                  ELSE CONVERT(NVARCHAR(30),convert(date,n.[QuotationDate],120))
+                end as re_date,''+
+                '' left(n.[QuotationTime],2)+'''':''''+left(right(n.[QuotationTime],4),2)+'''':''''+right(n.[QuotationTime],2)  as ctime,
+                  '''''''' as unit,n.[BuyOnePrice],CONVERT(NUMERIC(18,2),convert(float,n.[LatestPrice])-convert(float,n.[YesterdaySettlement])) as zhDie,
+                  n.[BuyAmountOne],n.[SaleOnePrice],n.[SaleAmountOne],n.[OpenPrice],n.[HighestPrice],n.[LowestPrice],n.[SettlementPrice],
+                  n.[YesterdaySettlement],n.[TurnoverAmount],n.[Turnover],n.[YesterdaySettlement] AS Closeprice,
+                  CONVERT(NVARCHAR(MAX),CONVERT(NUMERIC(4,2),(n.[Change]/convert(float,n.[LatestPrice] ))*100))+''''%'''' AS CHANGE,
+                n.code as keyword
+                ''
+                 end    
+                 declare @sqlisExcel nvarchar(max)
+                 if (@isExcel=1)
+                 begin
+                     set @sqlisExcel='' from [cne].[FanyaMetals] as n
+                               inner join 
+                              (
+                                select QuotationDate,max(QuotationTime) as dataTime from 
+                                 (select * from [cne].[FanyaMetals] where  QuotationTime>''''000000'''' and QuotationTime<''''003500'''')as t1
+                               where [code]=''''''+@key+'''''' 
+                               group by QuotationDate 
+                              
+                                union 
+                                select QuotationDate,max(QuotationTime) as dataTime from 
+                                (select * from [cne].[FanyaMetals] where  QuotationTime>''''010000'''' and QuotationTime<''''171000'''')as t1
+                                 where [code]=''''''+@key+'''''' 
+                               group by QuotationDate 
+
+                                ) as m 
+                                on m.QuotationDate=n.QuotationDate and m.dataTime=n.QuotationTime and n.[code]=''''''+@key+''''''   
+                                WHERE CONVERT(datetime,n.[QuotationDate],120)>=''''''+CONVERT(NVARCHAR(10),@start,120)+'''''' 
+                                AND LatestPrice!=''''0.00''''
+                                and CONVERT(datetime,n.[QuotationDate],120)<=''''''+CONVERT(NVARCHAR(10),DATEADD(DAY,1,@end),120)+'''''' 
+                               and datepart(dw, n.[CreateDate])!=7 and datepart(dw, n.[CreateDate])!=1
+                               ORDER BY n.[QuotationDate] desc,N.[QuotationTime] desc'' 
+
+          end 
+          else 
+          begin 
+           set @sqlisExcel='' from [cne].[FanyaMetals] as n
+                               inner join 
+                               (
+                                select QuotationDate,max(QuotationTime) as dataTime from 
+                                 (select * from [cne].[FanyaMetals] where  QuotationTime>''''000000'''' and QuotationTime<''''003500'''')as t1
+                               where [code]=''''''+@key+''''''  and isHistory=1
+                               group by QuotationDate 
+                              
+                                union 
+                                select QuotationDate,max(QuotationTime) as dataTime from 
+                                (select * from [cne].[FanyaMetals] where  QuotationTime>''''010000'''' and QuotationTime<''''171000'''')as t1
+                                 where [code]=''''''+@key+'''''' 
+                               group by QuotationDate 
+
+                                ) as m 
+                                on m.QuotationDate=n.QuotationDate and m.dataTime=n.QuotationTime and n.[code]=''''''+@key+''''''   
+                                WHERE CONVERT(datetime,n.[QuotationDate],120)>=''''''+CONVERT(NVARCHAR(10),@start,120)+'''''' 
+                                AND LatestPrice!=''''0.00''''
+                                and CONVERT(datetime,n.[QuotationDate],120)<=''''''+CONVERT(NVARCHAR(10),DATEADD(DAY,1,@end),120)+'''''' 
+                               ORDER BY n.[QuotationDate],N.[QuotationTime]'' 
+
+          end
+       
+          
+       set @sqlWithTime1=@sqlWithTime1+''  ''+@sqlisExcel
+         print @sqlWithTime1
+          exec(@sqlWithTime1) ' 
+END
+GO

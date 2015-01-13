@@ -1,0 +1,312 @@
+﻿SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[createMaxMetalInventoryTable]') AND type in (N'P', N'PC'))
+BEGIN
+EXEC dbo.sp_executesql @statement = N' 
+CREATE  PROCEDURE [dbo].[createMaxMetalInventoryTable] 
+AS
+BEGIN
+	TRUNCATE TABLE dbo.GDT_MetalInventoryMax
+	--step one: update the latest date
+	
+	--custeel 非标准
+	INSERT INTO dbo.GDT_MetalInventoryMax
+	        ( KeyWord ,
+	          LatestDate ,
+	          Inventory ,
+	          SyncTime ,
+	          ProductName_CN ,
+	          ProductName_EN ,
+	          Unit_CN ,
+	          Unit_EN ,
+	          StatiRange_CN ,
+	          StatiRange_EN ,
+	          DataSrc_CN ,
+	          DataSrc_EN ,
+	          ItemName_CN ,
+	          ItemName_EN ,
+	          [UpdateFrequency_CN]  ,
+			  [UpdateFrequency_EN] ,
+	          LastMonthInventory,
+	          DataTab
+	        )
+			SELECT map.KeyWord,a.re_date,a.stock,a.SyncTime,map.ProductName_CN,map.ProductName_EN,
+	        Unit_CN ,Unit_EN ,StatiRange_CN	,StatiRange_EN	,DataSrc_CN ,DataSrc_EN ,ItemName_CN ,ItemName_EN ,	[UpdateFrequency_CN],[UpdateFrequency_EN] ,
+			b.stock,''dbo.View_CusteelMarketingData''
+			FROM dbo.GDT_MetalInventoryMap AS map
+			 JOIN  (
+			 SELECT * FROM (
+			 SELECT ROW_NUMBER() OVER(PARTITION BY code ORDER BY re_date DESC) AS RN,code,datavalue AS stock,re_date ,SyncTime FROM dbo.View_CusteelMarketingData
+			 ) AS ina WHERE ina.RN = 1
+			 ) AS a ON  map.DataSrc_en=''custeel'' AND a.code=map.KeyWord
+			 JOIN  (
+			 SELECT * FROM (
+			 SELECT ROW_NUMBER() OVER(PARTITION BY code ORDER BY re_date DESC) AS RN,code,datavalue AS stock,re_date ,SyncTime FROM dbo.View_CusteelMarketingData
+			 ) AS inb WHERE inb.RN = 2
+			 ) AS b ON  map.DataSrc_en=''custeel'' AND b.code=map.KeyWord 
+			ORDER BY map.KeyWord
+
+		
+	--custeel 标准数据
+	INSERT INTO dbo.GDT_MetalInventoryMax
+	        ( KeyWord ,
+	          LatestDate ,
+	          Inventory ,
+	          SyncTime ,
+	          ProductName_CN ,
+	          ProductName_EN ,
+	          Unit_CN ,
+	          Unit_EN ,
+	          StatiRange_CN ,
+	          StatiRange_EN ,
+	          DataSrc_CN ,
+	          DataSrc_EN ,
+	          ItemName_CN ,
+	          ItemName_EN ,
+	          [UpdateFrequency_CN]  ,
+			  [UpdateFrequency_EN] ,
+	          LastMonthInventory,
+	          DataTab
+	        )
+ 			SELECT map.KeyWord,a.re_date,a.stock,a.SyncTime,map.ProductName_CN,map.ProductName_EN,
+	        Unit_CN ,Unit_EN ,StatiRange_CN	,StatiRange_EN	,DataSrc_CN ,DataSrc_EN ,ItemName_CN ,ItemName_EN ,	[UpdateFrequency_CN],[UpdateFrequency_EN] ,
+			b.stock,''cne.CusteelData''
+			FROM dbo.GDT_MetalInventoryMap AS map
+			 JOIN  (
+			 SELECT * FROM (
+			 SELECT ROW_NUMBER() OVER(PARTITION BY aa.code ORDER BY aa.[time] DESC) AS RN,aa.code,aa.price AS stock,aa.[time] AS re_date , aa.CreateDate as SyncTime 
+			 FROM cne.CusteelData AS aa
+			 JOIN cne.CusteelTargets AS bb ON aa.code=bb.code AND bb.targetName LIKE N''%库存%''
+			 ) AS ina WHERE ina.RN = 1
+			 ) AS a ON  map.DataSrc_en=''custeel'' AND a.code=map.KeyWord
+			 JOIN  (
+			 SELECT * FROM (
+			 SELECT ROW_NUMBER() OVER(PARTITION BY aa.code ORDER BY aa.[time] DESC) AS RN,aa.code,aa.price AS stock,aa.[time] AS re_date , aa.CreateDate as SyncTime 
+			 FROM cne.CusteelData AS aa
+			 JOIN cne.CusteelTargets AS bb ON aa.code=bb.code AND bb.targetName LIKE N''%库存%''
+			 ) AS inb WHERE inb.RN = 2
+			 ) AS b ON  map.DataSrc_en=''custeel'' AND b.code=map.KeyWord 
+			ORDER BY map.KeyWord
+			
+		
+	--custeel 废钢
+	INSERT INTO dbo.GDT_MetalInventoryMax
+	        ( KeyWord ,
+	          LatestDate ,
+	          Inventory ,
+	          SyncTime ,
+	          ProductName_CN ,
+	          ProductName_EN ,
+	          Unit_CN ,
+	          Unit_EN ,
+	          StatiRange_CN ,
+	          StatiRange_EN ,
+	          DataSrc_CN ,
+	          DataSrc_EN ,
+	          ItemName_CN ,
+	          ItemName_EN ,
+	          [UpdateFrequency_CN]  ,
+			  [UpdateFrequency_EN] ,
+	          LastMonthInventory,
+	          DataTab
+	        )
+ 			SELECT map.KeyWord,a.re_date,a.stock,a.SyncTime,map.ProductName_CN,map.ProductName_EN,
+	        Unit_CN ,Unit_EN ,StatiRange_CN	,StatiRange_EN	,DataSrc_CN ,DataSrc_EN ,ItemName_CN ,ItemName_EN ,	[UpdateFrequency_CN],[UpdateFrequency_EN] ,
+			b.stock,''[CUSteel].[ScrapSteelBaseInventory]''
+			FROM dbo.GDT_MetalInventoryMap AS map
+			 JOIN  (
+			 SELECT * FROM (
+			 SELECT ROW_NUMBER() OVER(PARTITION BY ItemName ORDER BY [MonthDate] DESC) AS RN,[ItemName] ,[ItemValue] AS stock,[MonthDate] AS re_date , [SyncTime] FROM [CUSteel].[ScrapSteelBaseInventory] WHERE ItemValue<>0
+			 ) AS ina WHERE ina.RN = 1
+			 ) AS a ON map.DataSrc_en=''custeel'' AND map.ProductName_CN=N''废钢'' AND  a.ItemName=map.StatiRange_CN 
+			 JOIN  (
+			 SELECT * FROM (
+			 SELECT ROW_NUMBER() OVER(PARTITION BY ItemName ORDER BY [MonthDate] DESC) AS RN,[ItemName] ,[ItemValue] AS stock,[MonthDate] AS re_date , [SyncTime] FROM [CUSteel].[ScrapSteelBaseInventory] WHERE ItemValue<>0
+			 ) AS inb WHERE inb.RN = 2
+			 ) AS b ON  map.DataSrc_en=''custeel'' AND map.ProductName_CN=N''废钢'' AND  b.ItemName=map.StatiRange_CN 
+			ORDER BY map.KeyWord
+	
+	--custeel 铁矿石
+	INSERT INTO dbo.GDT_MetalInventoryMax
+	        ( KeyWord ,
+	          LatestDate ,
+	          Inventory ,
+	          SyncTime ,
+	          ProductName_CN ,
+	          ProductName_EN ,
+	          Unit_CN ,
+	          Unit_EN ,
+	          StatiRange_CN ,
+	          StatiRange_EN ,
+	          DataSrc_CN ,
+	          DataSrc_EN ,
+	          ItemName_CN ,
+	          ItemName_EN ,
+	          [UpdateFrequency_CN]  ,
+			  [UpdateFrequency_EN] ,
+	          LastMonthInventory,
+	          DataTab
+	        )
+			SELECT map.KeyWord,a.re_date,a.stock,a.SyncTime,map.ProductName_CN,map.ProductName_EN,
+	        Unit_CN ,Unit_EN ,StatiRange_CN	,StatiRange_EN	,DataSrc_CN ,DataSrc_EN ,ItemName_CN ,ItemName_EN ,	[UpdateFrequency_CN],[UpdateFrequency_EN] ,
+			b.stock,''[CUSteel].[OreBondedAreaInventory]''
+			FROM dbo.GDT_MetalInventoryMap AS map
+			 JOIN  (
+			 SELECT * FROM (
+			 SELECT ROW_NUMBER() OVER(PARTITION BY ItemName ORDER BY [MonthDate] DESC) AS RN,[ItemName] ,[ItemValue] AS stock,[MonthDate] AS re_date , [SyncTime] FROM [CUSteel].[OreBondedAreaInventory] WHERE ItemValue<>0
+			 ) AS ina WHERE ina.RN = 1
+			 ) AS a ON map.DataSrc_en=''custeel'' AND map.ProductName_CN=N''铁矿石'' AND  N''保税区库存:''+a.ItemName=map.StatiRange_CN 
+			 JOIN  (
+			 SELECT * FROM (
+			 SELECT ROW_NUMBER() OVER(PARTITION BY ItemName ORDER BY [MonthDate] DESC) AS RN,[ItemName] ,[ItemValue] AS stock,[MonthDate] AS re_date , [SyncTime] FROM [CUSteel].[OreBondedAreaInventory] WHERE ItemValue<>0
+			 ) AS inb WHERE inb.RN = 2
+			 ) AS b ON  map.DataSrc_en=''custeel'' AND map.ProductName_CN=N''铁矿石'' AND  N''保税区库存:''+b.ItemName=map.StatiRange_CN 
+			ORDER BY map.KeyWord
+	
+	
+	--custeel 中厚板
+	INSERT INTO dbo.GDT_MetalInventoryMax
+	        ( KeyWord ,
+	          LatestDate ,
+	          Inventory ,
+	          SyncTime ,
+	          ProductName_CN ,
+	          ProductName_EN ,
+	          Unit_CN ,
+	          Unit_EN ,
+	          StatiRange_CN ,
+	          StatiRange_EN ,
+	          DataSrc_CN ,
+	          DataSrc_EN ,
+	          ItemName_CN ,
+	          ItemName_EN ,
+	          [UpdateFrequency_CN]  ,
+			  [UpdateFrequency_EN] ,
+	          LastMonthInventory,
+	          DataTab
+	        )
+			SELECT map.KeyWord,a.re_date,a.stock,a.SyncTime,map.ProductName_CN,map.ProductName_EN,
+	        Unit_CN ,Unit_EN ,StatiRange_CN	,StatiRange_EN	,DataSrc_CN ,DataSrc_EN ,ItemName_CN ,ItemName_EN ,	[UpdateFrequency_CN],[UpdateFrequency_EN] ,
+			b.stock,''[CUSteel].[HeavyAndMediumPlate]''
+			FROM dbo.GDT_MetalInventoryMap AS map
+			 JOIN  (
+			 SELECT * FROM (
+			 SELECT ROW_NUMBER() OVER(PARTITION BY ItemName ORDER BY [MonthDate] DESC) AS RN,[ItemName] ,[ItemValue] AS stock,[MonthDate] AS re_date , [SyncTime] FROM [CUSteel].[HeavyAndMediumPlate] 
+			 WHERE ItemName=N''库存量'' AND [ItemValue]<>0
+			 ) AS ina WHERE ina.RN = 1
+			 ) AS a ON map.DataSrc_en=''custeel'' AND map.ProductName_CN=N''中厚板'' AND map.StatiRange_CN =N''全国钢厂''
+			 JOIN  (
+			 SELECT * FROM (
+			 SELECT ROW_NUMBER() OVER(PARTITION BY ItemName ORDER BY [MonthDate] DESC) AS RN,[ItemName] ,[ItemValue] AS stock,[MonthDate] AS re_date , [SyncTime] FROM [CUSteel].[HeavyAndMediumPlate] 
+			 WHERE ItemName=N''库存量'' AND [ItemValue]<>0
+			 ) AS inb WHERE inb.RN = 2
+			 ) AS b ON  map.DataSrc_en=''custeel'' AND map.ProductName_CN=N''中厚板'' AND  map.StatiRange_CN =N''全国钢厂''
+			ORDER BY map.KeyWord
+	
+	
+	--mysteel
+	INSERT INTO dbo.GDT_MetalInventoryMax
+	        ( KeyWord ,
+	          LatestDate ,
+	          Inventory ,
+	          SyncTime ,
+	          ProductName_CN ,
+	          ProductName_EN ,
+	          Unit_CN ,
+	          Unit_EN ,
+	          StatiRange_CN ,
+	          StatiRange_EN ,
+	          DataSrc_CN ,
+	          DataSrc_EN ,
+	          ItemName_CN ,
+	          ItemName_EN ,
+	          [UpdateFrequency_CN]  ,
+			  [UpdateFrequency_EN] ,
+	          LastMonthInventory,
+	          DataTab
+	        )
+			SELECT map.KeyWord,a.re_date,a.stock,a.SyncTime,map.ProductName_CN,map.ProductName_EN,
+	        Unit_CN ,Unit_EN ,StatiRange_CN	,StatiRange_EN	,DataSrc_CN ,DataSrc_EN ,ItemName_CN ,ItemName_EN ,	[UpdateFrequency_CN],[UpdateFrequency_EN] ,
+			b.stock,''MySteel.RTMS_TABLEDATA''
+			FROM dbo.GDT_MetalInventoryMap AS map
+			 JOIN  (
+			 SELECT * FROM (
+			 SELECT ROW_NUMBER() OVER(PARTITION BY code ORDER BY times DESC) AS RN,code,value AS stock,times AS re_date , dLastAccess as [SyncTime] FROM MySteel.RTMS_TABLEDATA WHERE value <> ''-'' AND value<>''0'' AND value<>'''' AND [status]=0
+			 ) AS ina WHERE ina.RN = 1
+			 ) AS a ON map.DataSrc_en=''mysteel'' AND map.KeyWord= a.code
+			 LEFT JOIN  (
+			 SELECT * FROM (
+			 SELECT ROW_NUMBER() OVER(PARTITION BY code ORDER BY times DESC) AS RN,code ,value AS stock,times AS re_date ,dLastAccess as [SyncTime] FROM MySteel.RTMS_TABLEDATA WHERE value <> ''-'' AND value<>''0'' AND value<>'''' AND [status]=0
+			 ) AS inb WHERE inb.RN = 2
+			 ) AS b ON  map.DataSrc_en=''mysteel'' AND map.KeyWord= b.code
+			ORDER BY map.KeyWord	 
+	
+	
+	--smm
+	INSERT INTO dbo.GDT_MetalInventoryMax
+	        ( KeyWord ,
+	          LatestDate ,
+	          Inventory ,
+	          SyncTime ,
+	          ProductName_CN ,
+	          ProductName_EN ,
+	          Unit_CN ,
+	          Unit_EN ,
+	          StatiRange_CN ,
+	          StatiRange_EN ,
+	          DataSrc_CN ,
+	          DataSrc_EN ,
+	          ItemName_CN ,
+	          ItemName_EN ,
+	          [UpdateFrequency_CN]  ,
+			  [UpdateFrequency_EN] ,
+	          LastMonthInventory,
+	          DataTab
+	        )
+			SELECT map.KeyWord,a.re_date,a.stock,a.SyncTime,map.ProductName_CN,map.ProductName_EN,
+	        Unit_CN ,Unit_EN ,StatiRange_CN	,StatiRange_EN	,DataSrc_CN ,DataSrc_EN ,ItemName_CN ,ItemName_EN ,[UpdateFrequency_CN],[UpdateFrequency_EN] ,	
+			b.stock,''dbo.metals_smm_industry''
+			FROM dbo.GDT_MetalInventoryMap AS map
+			 JOIN  (
+			 SELECT * FROM (
+				 SELECT ROW_NUMBER() OVER(PARTITION BY code ORDER BY re_date DESC) AS RN,code,figure AS stock, re_date , fetchTime as [SyncTime] 
+				 FROM (SELECT *,
+						(CASE LEN(priceDate) WHEN 4 THEN (DATEADD(DAY ,-1, DATEADD(YEAR,1, CONVERT(DATE, priceDate + ''/01/01''))))
+								WHEN 6 THEN (DATEADD(DAY ,-1, DATEADD(MONTH ,1, CONVERT(DATE, priceDate + ''/01''))))
+								WHEN 7 THEN (DATEADD(DAY ,-1, DATEADD(MONTH ,1, CONVERT(DATE,priceDate + ''/01''))))
+								ELSE priceDate
+								end
+							) AS re_date
+						 FROM dbo.metals_smm_industry WHERE datatype =''inventories'') AS newsmm				 
+			 ) AS ina WHERE ina.RN = 1
+			 ) AS a ON map.DataSrc_en=''smm'' AND map.KeyWord= a.code
+			 LEFT JOIN  (
+			 SELECT * FROM (
+			 SELECT ROW_NUMBER() OVER(PARTITION BY code ORDER BY re_date DESC) AS RN,code ,figure AS stock, re_date ,fetchTime as [SyncTime] 
+			 FROM (SELECT *,
+						(CASE LEN(priceDate) WHEN 4 THEN (DATEADD(DAY ,-1, DATEADD(YEAR,1, CONVERT(DATE, priceDate + ''/01/01''))))
+								WHEN 6 THEN (DATEADD(DAY ,-1, DATEADD(MONTH ,1, CONVERT(DATE, priceDate + ''/01''))))
+								WHEN 7 THEN (DATEADD(DAY ,-1, DATEADD(MONTH ,1, CONVERT(DATE,priceDate + ''/01''))))
+								ELSE priceDate
+								end
+							) AS re_date
+						 FROM dbo.metals_smm_industry WHERE datatype =''inventories'') AS newsmm		 
+			 ) AS inb WHERE inb.RN = 2
+			 ) AS b ON  map.DataSrc_en=''smm'' AND map.KeyWord= b.code
+			ORDER BY map.KeyWord 
+	 
+	
+	----step 2,calc ratio
+	PRINT ''begin to calc''
+	UPDATE dbo.GDT_MetalInventoryMax SET 
+					MoM=CONVERT(NUMERIC(18,2),((Inventory- LastMonthInventory )/LastMonthInventory)*100)
+	 
+END
+
+
+
+' 
+END
+GO

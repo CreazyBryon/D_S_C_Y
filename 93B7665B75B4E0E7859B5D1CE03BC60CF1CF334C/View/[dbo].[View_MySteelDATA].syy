@@ -1,0 +1,14 @@
+﻿SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+IF NOT EXISTS (SELECT * FROM sys.views WHERE object_id = OBJECT_ID(N'[dbo].[View_MySteelDATA]'))
+EXEC dbo.sp_executesql @statement = N'
+CREATE VIEW [dbo].[View_MySteelDATA]
+AS
+SELECT  a.*
+FROM    MySteel.RTMS_TABLEDATA AS a
+LEFT OUTER JOIN MySteel.DeleteCode AS b ON a.code = b.code
+WHERE  b.code IS NULL AND a.status=0
+' 
+GO

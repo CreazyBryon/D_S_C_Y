@@ -1,0 +1,86 @@
+﻿SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[createMaxAgricultrueInventoryTable]') AND type in (N'P', N'PC'))
+BEGIN
+EXEC dbo.sp_executesql @statement = N'
+ 
+CREATE  PROCEDURE [dbo].[createMaxAgricultrueInventoryTable] 
+AS
+BEGIN
+	TRUNCATE TABLE dbo.GDT_AgricultrueInventoryMax
+	--step one: update the latest date
+	
+	-- 
+	INSERT INTO dbo.GDT_AgricultrueInventoryMax
+	        ( 
+	          KeyWord ,
+	          LatestDate ,
+	          Inventory ,
+	          SyncTime ,
+	          ProductName_CN ,
+	          ProductName_EN ,
+	          Unit_CN ,
+	          Unit_EN ,
+	          Area_CN ,
+	          Area_EN ,
+	          DataSrc_CN ,
+	          DataSrc_EN ,
+	          Province_CN ,
+	          Province_EN ,
+	          [UpdateFrequency_CN]  ,
+			  [UpdateFrequency_EN] ,	
+	          SYMBOL ,
+	          DSPLY_NAME ,
+	          RIC ,
+	          hisdata ,
+	          Remark_CN ,
+	          Remark_EN ,
+	          CreateTime ,
+	          LastMonthInventory 
+	        )
+			SELECT map.KeyWord,a.re_date,a.stock,a.CreateDate, map.ProductName_CN,map.ProductName_EN,
+	        Unit_CN ,Unit_EN  ,Area_CN ,
+			  Area_EN ,
+			  DataSrc_CN ,
+			  DataSrc_EN ,
+			  Province_CN ,
+			  Province_EN ,
+			  [UpdateFrequency_CN]  ,
+			  [UpdateFrequency_EN] ,
+			  SYMBOL ,
+			  DSPLY_NAME ,
+			  RIC ,
+			  hisdata ,
+			  Remark_CN ,
+			  Remark_EN ,
+			  GETDATE(), b.stock
+			FROM dbo.GDT_AgricultrueInventoryMap AS map
+			 JOIN  (
+			 SELECT * FROM (
+			 SELECT ROW_NUMBER() OVER(PARTITION BY code ORDER BY re_date DESC) AS RN,code, stock,re_date ,CreateDate FROM dbo.View_GDT_AgricultureInventoryData WHERE stock IS NOT NULL
+			 ) AS ina WHERE ina.RN = 1
+			 ) AS a ON   a.code=map.KeyWord
+			 JOIN  (
+			 SELECT * FROM (
+			 SELECT ROW_NUMBER() OVER(PARTITION BY code ORDER BY re_date DESC) AS RN,code,  stock,re_date ,CreateDate FROM dbo.View_GDT_AgricultureInventoryData WHERE stock IS NOT NULL
+			 ) AS inb WHERE inb.RN = 2
+			 ) AS b ON   b.code=map.KeyWord 
+			ORDER BY map.KeyWord
+
+		
+	 
+	
+	----step 2,calc ratio
+	UPDATE dbo.GDT_AgricultrueInventoryMax SET 
+					MoM=CONVERT(NUMERIC(18,2),((Inventory- LastMonthInventory )/LastMonthInventory)*100)
+	 
+END
+
+
+
+
+' 
+END
+GO

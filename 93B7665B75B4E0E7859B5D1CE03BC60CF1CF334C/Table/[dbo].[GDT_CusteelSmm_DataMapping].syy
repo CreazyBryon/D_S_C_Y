@@ -1,0 +1,39 @@
+﻿SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[GDT_CusteelSmm_DataMapping]') AND type in (N'U'))
+BEGIN
+CREATE TABLE [dbo].[GDT_CusteelSmm_DataMapping](
+	[Code] [nvarchar](255) NOT NULL,
+	[ProductName_EN] [nvarchar](255) NULL,
+	[ProductName_CN] [nvarchar](255) NULL,
+	[Specification_EN] [nvarchar](255) NULL,
+	[Specification_CN] [nvarchar](255) NULL,
+	[Unit_EN] [nvarchar](255) NULL,
+	[Unit_CN] [nvarchar](255) NULL,
+	[Datatype_EN] [nvarchar](255) NULL,
+	[Datatype_CN] [nvarchar](255) NULL,
+	[UpdateFrequency_EN] [nvarchar](255) NULL,
+	[UpdateFrequency_CN] [nvarchar](255) NULL,
+	[Type_EN] [nvarchar](255) NULL,
+	[Type_CN] [nvarchar](255) NULL,
+	[LocationOfSale_EN] [nvarchar](255) NULL,
+	[LocationOfSale_CN] [nvarchar](255) NULL,
+	[Description_EN] [nvarchar](255) NULL,
+	[Description_CN] [nvarchar](255) NULL,
+	[Grade_EN] [nvarchar](255) NULL,
+	[Grade_CN] [nvarchar](255) NULL,
+	[Brand_EN] [nvarchar](255) NULL,
+	[Brand_CN] [nvarchar](255) NULL,
+	[Location_EN] [nvarchar](255) NULL,
+	[Location_CN] [nvarchar](255) NULL,
+	[LocationOfProduction_EN] [nvarchar](255) NULL,
+	[LocationOfProduction_CN] [nvarchar](255) NULL,
+	[Producer_EN] [nvarchar](255) NULL,
+	[Producer_CN] [nvarchar](255) NULL,
+	[DataSource_EN] [nvarchar](255) NULL,
+	[DataSource_CN] [nvarchar](255) NULL
+) ON [PRIMARY]
+END
+GO

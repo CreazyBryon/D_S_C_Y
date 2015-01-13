@@ -1,0 +1,19 @@
+﻿SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[cne].[GetMetalSalesData]') AND type in (N'P', N'PC'))
+BEGIN
+EXEC dbo.sp_executesql @statement = N'
+
+
+CREATE  PROCEDURE [cne].[GetMetalSalesData] 
+@key nvarchar(50)          
+AS  
+	SELECT [sales] ,[redate] AS [re_date]
+	FROM [dbo].[View_metals_sales]
+	where   [KeyWord]=@key
+	order by [redate]
+' 
+END
+GO

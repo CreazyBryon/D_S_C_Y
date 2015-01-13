@@ -1,0 +1,35 @@
+﻿SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+IF NOT EXISTS (SELECT * FROM sys.views WHERE object_id = OBJECT_ID(N'[dbo].[View_LongzhongPrice_Chemical_Ftp]'))
+EXEC dbo.sp_executesql @statement = N'
+
+
+
+
+
+CREATE view [dbo].[View_LongzhongPrice_Chemical_Ftp]
+as 
+ 
+
+SELECT * FROM 
+(
+select convert(nvarchar(10),a.[id])+''_3'' as keyWord,[priceDate] as re_date,[price],fetchunix AS createTime ,''National'' AS tabType
+from [dbo].[LongZhong_NationalPrice] AS a
+where [price]<>''0.0''
+union all 
+select convert(nvarchar(10),a.[id])+''_2'' as keyWord,[priceDate] as re_date,[price],fetchunix AS createTime ,''LeaveFactory'' AS tabType
+from [dbo].[LongZhong_LeaveFactoryPrice] AS a
+where [price]<>''0.0''
+)AS a
+JOIN (
+SELECT id, ProductName_EN, ProductName_CN, ModelName_EN, ModelName_CN, Area_EN, Area_CN, Unit_EN, Unit_CN, ''ChemicalIndustryMap'' AS mapType
+ FROM dbo.GDT_ChemicalIndustryMap
+) AS b ON a.keyWord=b.id
+ 
+
+
+
+' 
+GO

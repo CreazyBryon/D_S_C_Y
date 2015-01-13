@@ -1,0 +1,35 @@
+﻿SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[cne].[GetMetalInventoryData]') AND type in (N'P', N'PC'))
+BEGIN
+EXEC dbo.sp_executesql @statement = N'
+
+CREATE  PROCEDURE [cne].[GetMetalInventoryData] 
+@key nvarchar(50)          
+AS  
+ 
+ IF LEFT(@key,2)=''YS'' OR LEFT(@key,2)=''ST'' OR LEFT(@key,2)=''FE'' OR LEFT(@key,2)=''IO''
+ BEGIN
+	SELECT
+	price AS inventory
+	, re_date
+	FROM [View_GDT_Metal]
+	where   KeyWord=@key  
+	order by [re_date] 
+ END
+ ELSE
+ BEGIN
+	SELECT
+	inventory 
+	,  re_date
+	FROM dbo.View_GDT_MetalInventoryData
+	where   [code]=@key AND inventory IS NOT NULL AND inventory<>''0''
+	order by [re_date] 
+ END
+ 
+
+' 
+END
+GO

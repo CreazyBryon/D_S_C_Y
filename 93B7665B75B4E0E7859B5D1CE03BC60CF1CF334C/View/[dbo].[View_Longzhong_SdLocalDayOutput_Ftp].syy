@@ -1,0 +1,30 @@
+﻿SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+IF NOT EXISTS (SELECT * FROM sys.views WHERE object_id = OBJECT_ID(N'[dbo].[View_Longzhong_SdLocalDayOutput_Ftp]'))
+EXEC dbo.sp_executesql @statement = N'
+
+
+
+
+
+
+
+
+
+
+CREATE  view [dbo].[View_Longzhong_SdLocalDayOutput_Ftp]
+as 
+SELECT map.ItemName_EN AS CompanyName_EN,map.ItemName_CN AS CompanyName_CN ,data.* FROM (
+SELECT ''OC0402'' AS code,code AS refinerycode,Company AS refineryname,Gasoline AS outputvalue,ReDate,N''吨'' AS Unit_CN,''Tonne'' AS Unit_EN,ReDate AS CreateDate,N''汽油(日)'' AS outputtype  FROM SdLocalRefinery.DayProduction
+UNION 
+SELECT ''OC0502'',code AS refinerycode,Company,Diesel,ReDate,N''吨'',''Tonne'',ReDate,N''柴油(日)'' AS outputtype  FROM SdLocalRefinery.DayProduction
+) AS data
+LEFT JOIN dbo.GDT_SDLocalRefineryMap AS map ON map.Code=data.refinerycode
+
+
+
+
+' 
+GO

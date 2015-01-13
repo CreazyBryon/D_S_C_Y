@@ -1,0 +1,18 @@
+﻿SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[GDT_SDLocalRefineryMap]') AND type in (N'U'))
+BEGIN
+CREATE TABLE [dbo].[GDT_SDLocalRefineryMap](
+	[Code] [nvarchar](200) NOT NULL,
+	[ItemName_CN] [nvarchar](200) NULL,
+	[ItemName_EN] [nvarchar](200) NULL,
+	[AliasName_CN] [nvarchar](200) NULL,
+	[AliasName_EN] [nvarchar](200) NULL,
+	[DataType_CN] [nvarchar](200) NULL,
+	[DataType_EN] [nvarchar](200) NULL,
+	[CreateTime] [datetime] NULL
+) ON [PRIMARY]
+END
+GO

@@ -1,0 +1,34 @@
+﻿SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[GDT_MetalInventoryMax]') AND type in (N'U'))
+BEGIN
+CREATE TABLE [dbo].[GDT_MetalInventoryMax](
+	[id] [int] IDENTITY(1,1) NOT NULL,
+	[KeyWord] [nvarchar](100) NULL,
+	[LatestDate] [date] NULL,
+	[Inventory] [numeric](18, 2) NULL,
+	[SyncTime] [datetime] NULL,
+	[ProductName_CN] [nvarchar](50) NULL,
+	[ProductName_EN] [nvarchar](50) NULL,
+	[Unit_CN] [nvarchar](50) NULL,
+	[Unit_EN] [nvarchar](50) NULL,
+	[StatiRange_CN] [nvarchar](100) NULL,
+	[StatiRange_EN] [nvarchar](100) NULL,
+	[DataSrc_CN] [nvarchar](50) NULL,
+	[DataSrc_EN] [nvarchar](50) NULL,
+	[ItemName_CN] [nvarchar](50) NULL,
+	[ItemName_EN] [nvarchar](50) NULL,
+	[UpdateFrequency_CN] [nvarchar](50) NULL,
+	[UpdateFrequency_EN] [nvarchar](50) NULL,
+	[LastMonthInventory] [numeric](18, 2) NULL,
+	[MoM] [numeric](18, 2) NULL,
+	[DataTab] [nvarchar](50) NULL,
+ CONSTRAINT [PK_GDT_MetalInventoryMax] PRIMARY KEY CLUSTERED 
+(
+	[id] ASC
+)WITH (PAD_INDEX  = OFF, STATISTICS_NORECOMPUTE  = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS  = ON, ALLOW_PAGE_LOCKS  = ON) ON [PRIMARY]
+) ON [PRIMARY]
+END
+GO

@@ -1,0 +1,93 @@
+﻿SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+IF NOT EXISTS (SELECT * FROM sys.views WHERE object_id = OBJECT_ID(N'[dbo].[View_metals_custeel_industry]'))
+EXEC dbo.sp_executesql @statement = N'
+
+
+
+
+
+
+
+
+
+CREATE view [dbo].[View_metals_custeel_industry]
+as 
+SELECT [MonthDate] AS  ''redate''
+      ,[SupplyTotal] AS ''output''
+      ,''Custeel_228'' AS  ''code''
+      ,'''' AS ''Remark_CN''
+      ,'''' AS ''Remark_EN''
+      ,[SyncTime]
+FROM [CUSteel].[ScrapSteelSupplyDemand]
+WHERE [SupplyTotal]<>0
+UNION ALL 
+SELECT [MonthDate] AS  ''redate''
+      ,[ItemValue] AS ''output''
+      ,(CASE WHEN [ItemName]=N''全国旬度产量'' THEN ''Custeel_229_1''
+             --WHEN [ItemName]=N''全国旬度日产量'' THEN ''Custeel_229_2''
+             WHEN [ItemName]=N''重点钢厂旬度产量'' THEN ''Custeel_229_3''
+             --WHEN [ItemName]=N''重点钢厂旬度日产量'' THEN ''Custeel_229_4''
+             WHEN [ItemName]=N''非重点企业产量'' THEN ''Custeel_229_5''
+             ELSE ''''
+        END 
+      ) AS  ''code''
+      ,(CASE WHEN [ItemName]=N''全国旬度产量'' THEN N''全国旬度产量''
+             --WHEN [ItemName]=N''全国旬度日产量'' THEN N''全国旬度日产量''
+             WHEN [ItemName]=N''重点钢厂旬度产量'' THEN N''重点钢厂旬度产量''
+             --WHEN [ItemName]=N''重点钢厂旬度日产量'' THEN N''重点钢厂旬度日产量''
+             WHEN [ItemName]=N''非重点企业产量'' THEN N''非重点企业产量''
+             ELSE ''''
+        END 
+      )+''-''+TenDays AS  ''Remark_CN''
+      ,(CASE WHEN [ItemName]=N''全国旬度产量'' THEN N''Ten days production of China''
+             --WHEN [ItemName]=N''全国旬度日产量'' THEN N''全国旬度日产量''
+             WHEN [ItemName]=N''重点钢厂旬度产量'' THEN N''Ten days production of China Key steel producers''
+             --WHEN [ItemName]=N''重点钢厂旬度日产量'' THEN N''重点钢厂旬度日产量''
+             WHEN [ItemName]=N''非重点企业产量'' THEN N''Production of Non-key  producers''
+             ELSE ''''
+        END 
+      )+''-''+TenDays AS ''Remark_EN''
+      ,[SyncTime]
+FROM [CUSteel].[TenDaysPeriodOutput]
+WHERE [ItemName]<>N''全国旬度日产量'' AND [ItemName]<>N''重点钢厂旬度日产量'' AND [ItemValue]<>0
+UNION ALL 
+SELECT [MonthDate] AS  ''redate''
+      ,[ItemValue] AS ''output''
+      ,(CASE WHEN [ItemName]=N''粗钢'' THEN ''Custeel_229_6''
+             WHEN [ItemName]=N''生铁'' THEN ''Custeel_230''
+             WHEN [ItemName]=N''钢材'' THEN ''Custeel_231''
+             ELSE ''''
+        END 
+      ) AS  ''code''
+      ,(CASE WHEN [ItemName]=N''粗钢'' THEN N''重点钢厂月产量''
+             ELSE ''''
+        END 
+      ) AS ''Remark_CN''
+      ,(CASE WHEN [ItemName]=N''粗钢'' THEN N''Monthly production of key  producers''
+             ELSE ''''
+        END 
+      ) AS ''Remark_EN''
+      ,[SyncTime]
+FROM [CUSteel].[KeyMonthOutput]
+WHERE [ItemValue]<>0
+UNION ALL 
+SELECT [MonthDate] AS  ''redate''
+      ,[ItemValue] AS ''output''
+      ,''Custeel_232'' AS  ''code''
+      ,'''' AS ''Remark_CN''
+      ,'''' AS ''Remark_EN''
+      ,[SyncTime]
+FROM [CUSteel].[HeavyAndMediumPlate]
+WHERE [ItemName]=N''产量'' AND [ItemValue]<>0
+
+
+
+
+
+
+
+' 
+GO

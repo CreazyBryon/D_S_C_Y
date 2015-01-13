@@ -1,0 +1,79 @@
+﻿SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[cne].[GetMetalPriceData]') AND type in (N'P', N'PC'))
+BEGIN
+EXEC dbo.sp_executesql @statement = N'
+CREATE PROCEDURE [cne].[GetMetalPriceData] 
+	@key nvarchar(50)  ,  
+	@start datetime,
+	@end datetime,
+	@isExport int,
+	@avg float output             
+AS  
+BEGIN
+DECLARE @tmp TABLE(re_date DATE,price NVARCHAR(50),KeyWord NVARCHAR(50),src VARCHAR(100),id BIGINT)
+	
+	INSERT INTO @tmp
+	select * 
+	FROM [dbo].View_GDT_Metal
+	where   [KeyWord]=@key and [re_date] >= @start  and [re_date] <= @end 	
+	
+	DECLARE @dupCount INT;
+	DECLARE @allCount INT;
+	
+ 
+	--if is export only take 1000
+	--if exist duplicate data ,filter it out
+	IF EXISTS (	SELECT KeyWord,re_date FROM @tmp
+	GROUP BY KeyWord,re_date
+	HAVING COUNT(1) > 1)
+	BEGIN
+		select @avg=avg(convert(float,isnull([price],0)))  
+		FROM @tmp AS a
+		JOIN (SELECT MAX(t.id) mid FROM @tmp t GROUP BY t.KeyWord,t.re_date) AS b ON a.id=b.mid
+		
+		
+		IF(@isExport = 0)
+		BEGIN
+			SELECT a.[price]  
+			,a.[re_date]  
+			FROM @tmp AS a
+			JOIN (SELECT MAX(t.id) mid FROM @tmp t GROUP BY t.KeyWord,t.re_date) AS b ON a.id=b.mid
+			order by a.[re_date]
+		END 
+		ELSE
+		BEGIN
+			SELECT TOP 1000 a.[price]  
+			,a.[re_date]  
+			FROM @tmp AS a
+			JOIN (SELECT MAX(t.id) mid FROM @tmp t GROUP BY t.KeyWord,t.re_date) AS b ON a.id=b.mid
+			order by a.[re_date] DESC			
+		END
+	END
+	ELSE
+	BEGIN
+		select @avg=avg(convert(float,isnull([price],0)))  
+		FROM @tmp AS a
+		
+		IF(@isExport = 0)
+		BEGIN		
+			SELECT  a.[price]  
+			,a.[re_date]  
+			FROM @tmp AS a
+			order by a.[re_date]
+		END 
+		ELSE
+		BEGIN		
+			SELECT TOP 1000 a.[price]  
+			,a.[re_date]  
+			FROM @tmp AS a
+			order by a.[re_date] DESC		
+		END	
+	END 
+ 
+END
+' 
+END
+GO

@@ -1,0 +1,36 @@
+﻿SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[cne].[ChinaJciImportPrice]') AND type in (N'U'))
+BEGIN
+CREATE TABLE [cne].[ChinaJciImportPrice](
+	[country] [nvarchar](50) NULL,
+	[pro_name] [nvarchar](50) NULL,
+	[price] [nvarchar](50) NULL,
+	[cnf] [nvarchar](50) NULL,
+	[grade] [nvarchar](50) NULL,
+	[rmb] [nvarchar](50) NULL,
+	[most] [nvarchar](50) NULL,
+	[pack] [nvarchar](50) NULL,
+	[ship] [nvarchar](50) NULL,
+	[re_date] [nvarchar](50) NULL,
+	[fare] [nvarchar](50) NULL,
+	[lme] [nvarchar](50) NULL,
+	[rate] [nvarchar](50) NULL,
+	[duty] [nvarchar](50) NULL,
+	[tax] [nvarchar](50) NULL,
+	[port] [nvarchar](50) NULL,
+	[jrate] [nvarchar](50) NULL,
+	[mykey] [nvarchar](50) NULL,
+	[CreateDate] [datetime] NULL,
+	[isHistory] [bit] NULL
+) ON [PRIMARY]
+END
+GO
+IF NOT EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF__ChinaJciI__Creat__000AF8CF]') AND type = 'D')
+BEGIN
+ALTER TABLE [cne].[ChinaJciImportPrice] ADD  DEFAULT (getdate()) FOR [CreateDate]
+END
+
+GO

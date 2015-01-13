@@ -1,0 +1,30 @@
+﻿SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[FN_ConvertLongzhongDate]') AND type in (N'FN', N'IF', N'TF', N'FS', N'FT'))
+BEGIN
+execute dbo.sp_executesql @statement = N'
+CREATE FUNCTION [dbo].[FN_ConvertLongzhongDate]
+(
+	@src NVARCHAR(100)
+)
+RETURNS DATE
+AS
+BEGIN
+	IF(CHARINDEX(N''年'',@src)=0 OR CHARINDEX(N''月'',@src)=0 OR LEN(@src)>8 OR LEN(@src) < 7)
+		RETURN NULL;
+	
+	DECLARE @res NVARCHAR(100);
+	DECLARE @res2 DATE;		
+	SET @res=REPLACE(@src,N''年'',''-'');
+	SET @res=REPLACE(@res,N''月'',''-'');	
+	SET @res= @res +''1'';		
+	SET @res2=DATEADD(day,-1,DATEADD(MONTH,1,CONVERT(DATE,@res)))
+	
+	RETURN @res2;
+END
+' 
+END
+
+GO

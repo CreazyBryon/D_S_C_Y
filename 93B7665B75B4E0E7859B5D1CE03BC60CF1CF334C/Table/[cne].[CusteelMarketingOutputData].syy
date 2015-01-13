@@ -1,0 +1,38 @@
+﻿SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[cne].[CusteelMarketingOutputData]') AND type in (N'U'))
+BEGIN
+CREATE TABLE [cne].[CusteelMarketingOutputData](
+	[id] [bigint] IDENTITY(1,1) NOT NULL,
+	[code] [nvarchar](50) NULL,
+	[cnname] [nvarchar](50) NULL,
+	[re_date] [date] NULL,
+	[sheet_no] [int] NULL,
+	[unit] [nvarchar](50) NULL,
+	[Output_Month] [numeric](18, 2) NULL,
+	[Sell_Totle_Month] [numeric](18, 2) NULL,
+	[Sell_Direct_Month] [numeric](18, 2) NULL,
+	[Sell_Distribution_Month] [numeric](18, 2) NULL,
+	[Sell_Retail_Month] [numeric](18, 2) NULL,
+	[Sell_Branch_Month] [numeric](18, 2) NULL,
+	[Sell_Export_Month] [numeric](18, 2) NULL,
+	[Stock_Increase_Month] [numeric](18, 2) NULL,
+	[Output_YTD] [numeric](18, 2) NULL,
+	[Sell_Totle_YTD] [numeric](18, 2) NULL,
+	[Sell_Direct_YTD] [numeric](18, 2) NULL,
+	[Sell_Distribution_YTD] [numeric](18, 2) NULL,
+	[Sell_Retail_YTD] [numeric](18, 2) NULL,
+	[Sell_Branch_YTD] [numeric](18, 2) NULL,
+	[Sell_Export_YTD] [numeric](18, 2) NULL,
+	[Stock_Opening] [numeric](18, 2) NULL,
+	[Stock_Closing] [numeric](18, 2) NULL,
+	[SyncTime] [datetime] NULL,
+ CONSTRAINT [PK_CusteelMarketingOutputData] PRIMARY KEY CLUSTERED 
+(
+	[id] ASC
+)WITH (PAD_INDEX  = OFF, STATISTICS_NORECOMPUTE  = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS  = ON, ALLOW_PAGE_LOCKS  = ON) ON [PRIMARY]
+) ON [PRIMARY]
+END
+GO

@@ -1,0 +1,18 @@
+﻿SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[cne].[GetAgriculturePriceDetailData]') AND type in (N'P', N'PC'))
+BEGIN
+EXEC dbo.sp_executesql @statement = N'
+CREATE PROCEDURE [cne].[GetAgriculturePriceDetailData] 
+@key nvarchar(50)  ,  
+@start datetime,
+@end datetime           
+AS  
+ SELECT * 
+  FROM [dbo].[View_GDT_Agriculture]
+ where   [KeyWord]=@key and [re_date]>=convert(nvarchar(10),@start,120) and [re_date]<=convert(nvarchar(10),@end,120)
+ order by [re_date]' 
+END
+GO

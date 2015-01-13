@@ -1,0 +1,26 @@
+﻿SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[GDT_MetalInventoryMap]') AND type in (N'U'))
+BEGIN
+CREATE TABLE [dbo].[GDT_MetalInventoryMap](
+	[id] [int] NOT NULL,
+	[KeyWord] [nvarchar](50) NULL,
+	[ProductName_CN] [nvarchar](50) NULL,
+	[ProductName_EN] [nvarchar](50) NULL,
+	[Unit_CN] [nvarchar](50) NULL,
+	[Unit_EN] [nvarchar](50) NULL,
+	[StatiRange_CN] [nvarchar](100) NULL,
+	[StatiRange_EN] [nvarchar](100) NULL,
+	[DataSrc_CN] [nvarchar](50) NULL,
+	[DataSrc_EN] [nvarchar](50) NULL,
+	[ItemName_CN] [nvarchar](50) NULL,
+	[ItemName_EN] [nvarchar](50) NULL,
+	[UpdateFrequency_CN] [nvarchar](50) NULL,
+	[UpdateFrequency_EN] [nvarchar](50) NULL,
+	[CreateTime] [datetime] NULL,
+	[GlobalCode] [nvarchar](50) NULL
+) ON [PRIMARY]
+END
+GO

@@ -1,0 +1,27 @@
+﻿SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+IF NOT EXISTS (SELECT * FROM sys.views WHERE object_id = OBJECT_ID(N'[dbo].[FanYaExponentMaxTable]'))
+EXEC dbo.sp_executesql @statement = N'  create view [dbo].[FanYaExponentMaxTable]
+  as 
+  select top 1000 
+    v.[ProductCode] as KeyWord
+    , v.[ProductCode] as orderKey
+    ,V.[ProductCode] AS ProductName_EN
+      ,v.[Exponent] as price
+      ,v.[YesSettle]
+      ,v.[UpsAndDown]
+      ,v.[RiseAndFall]
+      ,v.[ProductName] as ProductName_CN
+      ,CONVERT(NVARCHAR(10),v.[StockTime],120) as re_date
+  
+   from
+  (
+   SELECT *, Row_Number() OVER (partition by [ProductCode] ORDER BY [StockTime] desc) as rowid 
+   FROM [dbo].[FanYaExponentData] 
+   )as v
+   where  v.rowid=1
+   order by v.productcode
+' 
+GO

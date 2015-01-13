@@ -1,0 +1,63 @@
+﻿SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[createMaxMetalTable]') AND type in (N'P', N'PC'))
+BEGIN
+EXEC dbo.sp_executesql @statement = N'
+CREATE proc [dbo].[createMaxMetalTable]
+as
+begin
+
+	BEGIN TRAN
+	
+	truncate table dbo.GDT_MetalMax
+	
+		  
+	 INSERT INTO dbo.GDT_MetalMax SELECT * FROM (SELECT a.[KeyWord]
+		  ,CONVERT(FLOAT,[LowestPrice]) AS LowestPrice
+		  ,CONVERT(FLOAT,b.[price]) AS price
+		  ,[UpdateTime] 
+		  ,[Unit_CN]
+		  ,[Unit_EN]
+		  ,[Brand_CN]
+		  ,[Brand_EN]
+		  ,[Grade_CN]
+		  ,[Grade_EN]
+		  ,[Producer_CN]
+		  ,[Producer_EN]
+		  ,[IndexName_CN]
+		  ,[IndexName_EN]
+		  ,[PriceType_CN]
+		  ,[PriceType_EN]
+		  ,[IndexValue_CN]
+		  ,[IndexValue_EN]
+		  ,[DataSource_CN]
+		  ,[DataSource_EN]
+		  ,[Description_CN]
+		  ,[Description_EN]
+		  ,[ProductName_CN]
+		  ,[ProductName_EN]
+		  ,[Specification_CN]
+		  ,[Specification_EN]
+		  ,[LocationOfSale_CN]
+		  ,[LocationOfSale_EN]
+		  ,[UpdateFrequency_CN]
+		  ,[UpdateFrequency_EN]
+		  ,[LocationOfProduction_CN]
+		  ,[LocationOfProduction_EN]
+		  ,[SrcSheet]
+		  ,b.[re_date]
+		  ,NULL AS orderKey
+	  
+	  FROM [dbo].[GDT_MetalMap] as a
+	   join (
+	select row_number() over(partition by keyword order by re_date desc) as indx,* from dbo.View_GDT_Metal
+	) as b on a.keyword=b.keyword and b.indx=1 WHERE a.[Status]=0) AS V
+
+COMMIT
+end
+
+' 
+END
+GO
