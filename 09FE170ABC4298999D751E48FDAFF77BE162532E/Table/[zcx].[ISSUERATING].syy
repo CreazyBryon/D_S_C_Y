@@ -1,0 +1,70 @@
+﻿SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[zcx].[ISSUERATING]') AND type in (N'U'))
+BEGIN
+CREATE TABLE [zcx].[ISSUERATING](
+	[CCXEID] [datetime] NULL,
+	[ETL_FLAG] [int] NULL,
+	[ACTION_INDICATOR] [nvarchar](1) NULL,
+	[ISSUE_ID] [bigint] NULL,
+	[SHANGHAI_CODE] [bigint] NULL,
+	[SHANGHAI_LIST_DATE] [nvarchar](19) NULL,
+	[SHENZHEN_CODE] [bigint] NULL,
+	[SHENZHEN_LIST_DATE] [nvarchar](19) NULL,
+	[INTER_BANK_CODE] [nvarchar](9) NULL,
+	[INTER_BANK_LIST_DATE] [nvarchar](19) NULL,
+	[ISIN] [nvarchar](12) NULL,
+	[ISSUER_ID] [bigint] NULL,
+	[ISSUER_NAME_ENGLISH] [nvarchar](200) NULL,
+	[ISSUER_NAME_CHINESE] [nvarchar](200) NULL,
+	[ISSUER_SECTOR] [nvarchar](10) NULL,
+	[COUNTRY_CODE_ISSUER] [nvarchar](6) NULL,
+	[STATE_OR_PROVINCE_ISSUER] [nvarchar](20) NULL,
+	[ISSUE_DESCRIPTION] [nvarchar](150) NULL,
+	[SERIES] [nvarchar](10) NULL,
+	[CLASS_OR_TRANCHE] [nvarchar](12) NULL,
+	[MATURITY_DATE] [nvarchar](19) NULL,
+	[ORIGINAL_AMOUNT] [decimal](12, 6) NULL,
+	[CURRENCY_CODE] [nvarchar](3) NULL,
+	[COUPON_RATE] [decimal](7, 4) NULL,
+	[COUPON_TYPE] [nvarchar](30) NULL,
+	[SENIORITY] [nvarchar](12) NULL,
+	[DEBT_CLASS] [nvarchar](25) NULL,
+	[ISSUE_STATUS] [nvarchar](4) NULL,
+	[AGENCY_CODE] [nvarchar](12) NULL,
+	[RATING_DIRECTION] [nvarchar](3) NULL,
+	[RATING_CLASS] [nvarchar](4) NULL,
+	[RATING_TYPE] [nvarchar](3) NULL,
+	[RATING_CODE] [nvarchar](30) NULL,
+	[RATING_DATE] [nvarchar](19) NULL,
+	[RATING_OUTLOOK] [nvarchar](15) NULL,
+	[RATING_OUTLOOK_DATE] [nvarchar](19) NULL,
+	[RATING_CREDITWATCH] [nvarchar](15) NULL,
+	[RATING_CREDITWATCH_DATE] [nvarchar](19) NULL,
+	[PRIOR_RATING_CODE] [nvarchar](30) NULL,
+	[PRIOR_RATING_DATE] [nvarchar](19) NULL,
+	[PRIOR_RATING_OUTLOOK] [nvarchar](15) NULL,
+	[PRIOR_RATING_OUTLOOK_DATE] [nvarchar](19) NULL,
+	[PRIOR_RATING_CREDITWATCH] [nvarchar](15) NULL,
+	[PRIOR_CREDITWATCH_DATE] [nvarchar](19) NULL,
+	[UNSOLICITED_RATING_FLAG] [nvarchar](1) NULL,
+	[PRELIMINARY_FLAG] [nvarchar](1) NULL,
+	[RATING_ENDORSEMENT] [nvarchar](20) NULL,
+	[CUSIP] [nvarchar](9) NULL,
+	[TAIWAN_CODE] [nvarchar](6) NULL,
+	[ID] [bigint] NOT NULL,
+PRIMARY KEY CLUSTERED 
+(
+	[ID] ASC
+)WITH (PAD_INDEX  = OFF, STATISTICS_NORECOMPUTE  = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS  = ON, ALLOW_PAGE_LOCKS  = ON) ON [PRIMARY]
+) ON [PRIMARY]
+END
+GO
+IF NOT EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF__ISSUERATI__CCXEI__7C5A637C]') AND type = 'D')
+BEGIN
+ALTER TABLE [zcx].[ISSUERATING] ADD  DEFAULT (getdate()) FOR [CCXEID]
+END
+
+GO

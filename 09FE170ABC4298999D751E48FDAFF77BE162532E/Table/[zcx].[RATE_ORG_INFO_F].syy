@@ -1,0 +1,82 @@
+﻿SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[zcx].[RATE_ORG_INFO_F]') AND type in (N'U'))
+BEGIN
+CREATE TABLE [zcx].[RATE_ORG_INFO_F](
+	[ID] [bigint] NOT NULL,
+	[ISVALID] [int] NULL,
+	[CCXEID] [datetime] NULL,
+	[COM_UNI_CODE] [bigint] NULL,
+	[COM_CHI_NAME] [nvarchar](200) NULL,
+	[COM_CHI_SHORT_NAME] [nvarchar](50) NULL,
+	[COM_SPE_SHORT_NAME] [nvarchar](50) NULL,
+	[COM_ENG_NAME] [nvarchar](200) NULL,
+	[COM_ENG_SHORT_NAME] [nvarchar](50) NULL,
+	[TYPE_BIG_PAR] [bigint] NULL,
+	[COM_ORGA_FORM_PAR] [int] NULL,
+	[PARE_COM_CODE] [bigint] NULL,
+	[IS_LIST_PAR] [int] NULL,
+	[COM_STP] [nvarchar](40) NULL,
+	[STP_TEL] [nvarchar](60) NULL,
+	[STP_TAX] [nvarchar](60) NULL,
+	[STP_CON_ADDR] [nvarchar](200) NULL,
+	[STP_MAIL] [nvarchar](40) NULL,
+	[SEC_REPR_NAME] [nvarchar](40) NULL,
+	[SEC_REPR_TEL] [nvarchar](60) NULL,
+	[SEC_REPR_TAX] [nvarchar](60) NULL,
+	[SEC_REPR_CON_ADDR] [nvarchar](200) NULL,
+	[SEC_REPR_MAIL] [nvarchar](40) NULL,
+	[INFO_DISC_PER] [nvarchar](40) NULL,
+	[INFO_DISC_PAP] [nvarchar](200) NULL,
+	[INFO_DISC_WEB] [nvarchar](160) NULL,
+	[REG_ADDR] [nvarchar](240) NULL,
+	[AREA_UNI_CODE] [bigint] NULL,
+	[REG_ADDR_POST] [nvarchar](10) NULL,
+	[OFFI_ADDR] [nvarchar](240) NULL,
+	[OFFI_ADDR_POST] [nvarchar](10) NULL,
+	[COM_ADDR] [nvarchar](240) NULL,
+	[COM_ADDR_POST] [nvarchar](10) NULL,
+	[COM_WEB] [nvarchar](60) NULL,
+	[COM_CON_PER] [nvarchar](60) NULL,
+	[COM_TEL] [nvarchar](60) NULL,
+	[CUS_CON_TEL] [nvarchar](60) NULL,
+	[COM_FAX] [nvarchar](60) NULL,
+	[MAIL_ADDR] [nvarchar](200) NULL,
+	[REG_CAP] [decimal](24, 4) NULL,
+	[CURY_TYPE_PAR] [int] NULL,
+	[LEG_PER] [nvarchar](40) NULL,
+	[GEN_MAN] [nvarchar](40) NULL,
+	[EST_DATE] [nvarchar](10) NULL,
+	[IC_REG_CODE] [nvarchar](60) NULL,
+	[NAT_TAX_REG_CODE] [nvarchar](50) NULL,
+	[LOC_TAX_REG_CODE] [nvarchar](50) NULL,
+	[TER_ACC_OFFI_CODE] [bigint] NULL,
+	[TER_ACC] [nvarchar](40) NULL,
+	[LAWER_OFFI_CODE] [bigint] NULL,
+	[COM_LAWER] [nvarchar](60) NULL,
+	[CAP_ESTI_ORG_CODE] [bigint] NULL,
+	[ESTI_STAFF] [nvarchar](200) NULL,
+	[MAIN_BUS] [ntext] NULL,
+	[SID_BUS] [ntext] NULL,
+	[COM_PRO] [nvarchar](3000) NULL,
+	[COM_HIS] [nvarchar](3000) NULL,
+	[STAFF_SUM] [int] NULL,
+	[STA_PAR] [bigint] NULL,
+	[DIS_DATE] [nvarchar](19) NULL,
+	[DIS_REAS] [nvarchar](3000) NULL,
+	[TYPE_MID_PAR] [bigint] NULL,
+PRIMARY KEY CLUSTERED 
+(
+	[ID] ASC
+)WITH (PAD_INDEX  = OFF, STATISTICS_NORECOMPUTE  = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS  = ON, ALLOW_PAGE_LOCKS  = ON) ON [PRIMARY]
+) ON [PRIMARY] TEXTIMAGE_ON [PRIMARY]
+END
+GO
+IF NOT EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF__RATE_ORG___CCXEI__02133CD2]') AND type = 'D')
+BEGIN
+ALTER TABLE [zcx].[RATE_ORG_INFO_F] ADD  DEFAULT (getdate()) FOR [CCXEID]
+END
+
+GO

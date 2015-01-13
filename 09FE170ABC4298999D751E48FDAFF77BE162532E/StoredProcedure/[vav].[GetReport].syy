@@ -1,0 +1,81 @@
+﻿SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[vav].[GetReport]') AND type in (N'P', N'PC'))
+BEGIN
+EXEC dbo.sp_executesql @statement = N'
+-- =============================================
+-- Author:		<ss>
+-- Create date: <2013.5.21>
+-- Description:	<2013.5.21>
+-- =============================================
+CREATE PROCEDURE [vav].[GetReport] (
+	@ReportId int,
+	@StartDate datetime = ''1900-01-01'',
+	@EndDate datetime = ''1900-01-01'',
+	@Culture varchar(10) = ''zh-CN''
+)
+AS
+BEGIN
+	-- SET NOCOUNT ON added to prevent extra result sets from
+	-- interfering with SELECT statements.
+	SET NOCOUNT ON;
+		
+    -- Insert statements for procedure here
+	DECLARE @sqlCommand varchar(Max)
+	DECLARE @columnList varchar(Max)
+	DECLARE @tableName nvarchar(50)
+	DECLARE @displayName nvarchar(50)
+	
+	SELECT @columnList = ISNULL(column_list, ''a.*'') from [vav].[ReportDefinition] where id = @ReportId
+	SELECT @tableName = table_name from [vav].[ReportDefinition] where id = @ReportId
+	
+	IF @Culture = ''zh-CN''
+		SET @displayName = ''b.[chinese_name]''
+	ELSE
+		SET @displayName = ''b.[english_name]''
+	
+	SET @sqlCommand =  ''SELECT '' + @columnList + '','' +  @displayName + '' as ''''chinese_name'''', ISNULL(b.[chart_source], ''''false'''') as ''''chart_source'''', ISNULL(b.[row_level], 0) as ''''row_level'''' FROM [vav].['' +  @tableName + ''] a ''
+						+ ''join [vav].[Localization] b on convert(varchar(32), [id]) = b.[table_cd]''
+						+ '' and b.[table_name] = '''''' + @tableName + '''''' where ''
+	
+	IF @StartDate != ''1900-01-01''
+	BEGIN					
+		IF @EndDate = ''1900-01-01''
+			SET @sqlCommand += '' a.[date] = '''''' + convert(varchar, @StartDate, 121) + ''''''''
+		ELSE
+			SET @sqlCommand += '' a.[date] between '''''' + convert(varchar, @StartDate, 121) + '''''' and '''''' +  convert(varchar, @EndDate, 121) + ''''''''
+			IF @columnList <> ''a.*''
+				SET @sqlCommand += '' group by a.id, a.row_index,'' +  @displayName + '', b.chart_source, b.row_level''
+				SET @sqlCommand = REPLACE(@sqlCommand, ''@#tablename#'', @tableName)
+				SET @sqlCommand = REPLACE(@sqlCommand, ''@#startdate#'', @StartDate)
+				SET @sqlCommand = REPLACE(@sqlCommand, ''@#enddate#'', @EndDate)
+	END
+	ELSE
+	BEGIN
+		IF @columnList <> ''a.*''
+		BEGIN
+			SET @sqlCommand += '' a.[date] between (SELECT DATEADD(yy, DATEDIFF(yy,0,CURRENT_TIMESTAMP), 0)) and (SELECT DATEADD(dd,0,DATEADD(mm, DATEDIFF(mm,0,CURRENT_TIMESTAMP),0)))''
+			SET @sqlCommand += '' group by a.id, a.row_index,'' +  @displayName + '', b.chart_source, b.row_level''
+				SET @sqlCommand = REPLACE(@sqlCommand, ''@#tablename#'', @tableName)
+				SET @sqlCommand = REPLACE(@sqlCommand, ''''''@#startdate#'''''', ''(SELECT DATEADD(yy, DATEDIFF(yy,0,CURRENT_TIMESTAMP), 0))'')
+				SET @sqlCommand = REPLACE(@sqlCommand, ''''''@#enddate#'''''', ''(SELECT DATEADD(dd,0,DATEADD(mm, DATEDIFF(mm,0,CURRENT_TIMESTAMP),0)))'')
+				END
+		ELSE
+		BEGIN
+		SET @sqlCommand += '' a.[date] = (SELECT MAX([date]) FROM [vav].['' + @tableName + ''])''
+		END
+	END
+	
+	SET @sqlCommand += '' order by a.row_index''
+	
+	--PRINT @sqlCommand
+	
+	EXEC (@sqlCommand)
+END
+
+-------------------------------------------
+' 
+END
+GO

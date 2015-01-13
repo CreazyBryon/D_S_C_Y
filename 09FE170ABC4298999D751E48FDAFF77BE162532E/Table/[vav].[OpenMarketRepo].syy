@@ -1,0 +1,19 @@
+﻿SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[vav].[OpenMarketRepo]') AND type in (N'U'))
+BEGIN
+CREATE TABLE [vav].[OpenMarketRepo](
+	[ric] [char](20) NOT NULL,
+	[date] [datetime] NOT NULL,
+	[nda_block_trade] [datetime] NULL,
+	[nda_block_volume] [int] NULL,
+	[nda_last] [float] NULL,
+	[nda_turnover] [float] NULL,
+	[nda_volume] [int] NULL,
+	[nda_yield] [float] NULL,
+	[last_update] [datetime] NULL
+) ON [PRIMARY]
+END
+GO

@@ -1,0 +1,39 @@
+﻿SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[vav].[GetImmaturityAmount]') AND type in (N'P', N'PC'))
+BEGIN
+EXEC dbo.sp_executesql @statement = N'
+-- =============================================
+-- Author:		Sheng Qing
+-- Create date: 2013-12-05
+-- Description:	Get immaturity amount
+-- =============================================
+CREATE PROCEDURE [vav].[GetImmaturityAmount]
+	@queryDate DATETIME = NULL
+AS
+BEGIN
+	SET NOCOUNT ON;
+
+	SET @queryDate = ISNULL(@queryDate,GETDATE())
+	
+	
+--央票
+declare @cbb float = (select ISNULL(sum(volume),0) from vav.v_openmarket where tradetype=0 and trade_dt<=@queryDate and maturity_dt> @queryDate)
+--逆回购
+declare @rrp float = (select ISNULL(sum(volume),0) from vav.v_openmarket where tradetype=1 and trade_dt<=@queryDate and maturity_dt> @queryDate)
+--正回购
+declare @rp float = (select ISNULL(sum(volume),0) from vav.v_openmarket where tradetype=2 and ric not in (''CNY9MFMD=PBOC'',''CNY6MFMD=PBOC'',''CNY3MFMD=PBOC'')  and trade_dt<=@queryDate and maturity_dt> @queryDate)
+--中央国库现金管理
+declare @fmd float = (select ISNULL(sum(volume),0) from vav.v_openmarket where tradetype=2 and ric in (''CNY9MFMD=PBOC'',''CNY6MFMD=PBOC'',''CNY3MFMD=PBOC'')  and trade_dt<=@queryDate and maturity_dt> @queryDate)
+
+-- 全部：-央票+逆回购-正回购+中央国库现金管理
+
+select @cbb as cbb,@rrp as rrp,@rp as rp,@fmd as fmd,-@cbb+@rrp-@rp+@fmd as [all]
+    
+END
+
+' 
+END
+GO

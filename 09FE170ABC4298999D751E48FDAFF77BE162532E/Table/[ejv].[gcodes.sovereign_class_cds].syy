@@ -1,0 +1,12 @@
+﻿SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[ejv].[gcodes.sovereign_class_cds]') AND type in (N'U'))
+BEGIN
+CREATE TABLE [ejv].[gcodes.sovereign_class_cds](
+	[sovr_class_cd] [char](4) NOT NULL,
+	[sovr_class_desc] [varchar](20) NOT NULL
+) ON [PRIMARY]
+END
+GO

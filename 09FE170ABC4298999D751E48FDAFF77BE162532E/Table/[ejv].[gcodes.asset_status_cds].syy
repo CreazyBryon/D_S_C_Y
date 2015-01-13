@@ -1,0 +1,17 @@
+﻿SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[ejv].[gcodes.asset_status_cds]') AND type in (N'U'))
+BEGIN
+CREATE TABLE [ejv].[gcodes.asset_status_cds](
+	[asset_status_cd] [varchar](40) NOT NULL,
+	[asset_status_descr] [varchar](40) NULL,
+	[active_fl] [char](1) NULL,
+PRIMARY KEY CLUSTERED 
+(
+	[asset_status_cd] ASC
+)WITH (PAD_INDEX  = OFF, STATISTICS_NORECOMPUTE  = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS  = ON, ALLOW_PAGE_LOCKS  = ON) ON [PRIMARY]
+) ON [PRIMARY]
+END
+GO

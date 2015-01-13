@@ -1,0 +1,15 @@
+﻿SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[ejv].[govcorp.asset_exchanges]') AND type in (N'U'))
+BEGIN
+CREATE TABLE [ejv].[govcorp.asset_exchanges](
+	[asset_id] [char](16) NOT NULL,
+	[delisting_dt] [datetime] NULL,
+	[exch_cd] [char](3) NULL,
+	[listing_dt] [datetime] NULL,
+	[min_trading_lot] [float] NULL
+) ON [PRIMARY]
+END
+GO

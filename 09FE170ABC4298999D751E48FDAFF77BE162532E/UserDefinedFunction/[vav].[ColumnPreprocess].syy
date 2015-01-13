@@ -1,0 +1,55 @@
+﻿SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[vav].[ColumnPreprocess]') AND type in (N'FN', N'IF', N'TF', N'FS', N'FT'))
+BEGIN
+execute dbo.sp_executesql @statement = N'CREATE FUNCTION [vav].[ColumnPreprocess](@columnList varchar(2000)) 
+	returns varchar(30)
+begin 
+	declare @result varchar(30);
+	
+ 
+	
+	if(@columnList like ''Code,%'' or @columnList like ''%,Code'' or @columnList like ''%,Code,%'')
+		set @result = ''''; 
+	else
+		set @result = ''Code''
+ 
+	
+	if (@columnList like ''Ric,%'' or @columnList like ''%,Ric'' or @columnList like ''%,Ric,%'')
+	begin
+		declare @temp int;
+	end
+	else
+	begin
+		set @result += '',Ric''	
+	end
+	
+	if (@columnList like ''AssetId,%'' or @columnList like ''%,AssetId'' or @columnList like ''%,AssetId,%'')
+	begin
+		declare @temp2 int;
+	end
+	else
+	begin
+		set @result += '',AssetId''	
+	end	
+	
+	if (@columnList like ''BondName,%'' or @columnList like ''%,BondName'' or @columnList like ''%,BondName,%'')
+	begin
+		declare @temp3 int;
+	end
+	else
+	begin
+		set @result += '',BondName''	
+	end		
+	
+	if (@result != '''')
+		set @result += '',''
+	
+	return @result;
+end
+' 
+END
+
+GO

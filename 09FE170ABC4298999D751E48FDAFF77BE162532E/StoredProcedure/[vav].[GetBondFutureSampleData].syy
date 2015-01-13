@@ -1,0 +1,137 @@
+﻿SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[vav].[GetBondFutureSampleData]') AND type in (N'P', N'PC'))
+BEGIN
+EXEC dbo.sp_executesql @statement = N'
+-- =============================================
+-- Author:		Qing.Sheng
+-- Create date: 2013-08-02
+-- Description:	sp for bond future sample data
+-- =============================================
+CREATE PROCEDURE [vav].[GetBondFutureSampleData](
+	@Contract varchar(30) = '''',
+	@StartTerm float,
+	@EndTerm float,
+	@IncludeUnlist bit = 1,
+	@StartDate datetime = ''1900-01-01'',
+	@EndDate datetime = ''1900-01-01'',
+	@Culture varchar(10) = ''zh-CN'',
+	@ColumnList varchar(4000)='''' 
+)
+AS
+BEGIN
+	SET NOCOUNT ON;
+
+	DECLARE @sqlCommand nvarchar(4000)
+	DECLARE @columns nvarchar(1000)
+	DECLARE @tableName nvarchar(50)
+	DECLARE @findListingIds nvarchar(200)
+	DECLARE @idsToExclude nvarchar(200)
+	DECLARE @nextTenWorkDay nvarchar(50)
+	DECLARE @contractStart datetime
+	DECLARE @firstDayOfContractMonth datetime
+	
+	DECLARE @StartTime datetime,@EndTime datetime -- determin how long this script runs
+	SELECT @StartTime = GETDATE() 
+	
+	IF @Contract IS NULL OR @Contract = ''''-- check parameters 
+	BEGIN                
+	PRINT ''Parameter ''''Contract'''' cannot be null''                
+	RETURN 13              
+	END
+	
+	SET @contractStart = (SELECT [settle_st] FROM [vav].[BondFutureContract] WHERE name = @Contract)
+	
+	SET @firstDayOfContractMonth = (DATEADD(MONTH, DATEDIFF(MONTH, 0, @contractStart), 0))
+
+	-- select 10 work day after contract end day
+	SELECT TOP 10 [date]
+	INTO #NextWorkDay 
+	FROM [vav].[CalendarCHN]
+	WHERE [date] > @EndDate
+	AND isholiday = 0
+	ORDER BY [date]
+	
+	-- get 10 days after contract ends
+	SET @nextTenWorkDay = (SELECT CONVERT(varchar, MAX([date]), 121) FROM #NextWorkDay)
+
+	
+	-- determine which table to use
+	IF @Culture = ''zh-CN''
+		SET @tableName = ''[vav].[BondInfoCn]''
+	ELSE
+		SET @tableName = ''[vav].[BondInfoEn]''
+		
+		
+	-- found ids of the bond which listing on all the 3
+	SET @findListingIds = ''SELECT asset_id FROM [ejv].[govcorp.asset_exchanges]''
+						+ ''	WHERE exch_cd in(''''CFS'''',''''SHH'''',''''SHZ'''')''
+						+ ''	GROUP BY asset_id''
+						+ ''	HAVING COUNT(DISTINCT exch_cd) = 3''
+	-- ids of the bond which has a date between contract start and (contract end + 10 workday)						
+	SET @idsToExclude = ''SELECT [BondID]''
+					  +	'' FROM [dbo].[CashflowsInfo]''
+					  + '' WHERE [Date] between '''''' + CONVERT(varchar,@StartDate,121) + '''''' and '''''' + @nextTenWorkDay + ''''''''
+					  + '' GROUP BY BondID''
+					  + '' HAVING COUNT([Date]) > 0''
+	
+	SET @columns = @ColumnList
+
+	IF(CHARINDEX(''[RemainingTerm]'',@columns) > 0)
+		SET @columns = REPLACE(@columns,''[RemainingTerm]'',''DATEDIFF(day,'''''' + CONVERT(varchar,@firstDayOfContractMonth,121) + '''''',[MaturityDate])/365.0 AS [RemainingTerm]'')
+	IF(CHARINDEX(''[CurrentRemainingTerm]'',@columns) > 0)
+		SET @columns = REPLACE(@columns,''[CurrentRemainingTerm]'',''DATEDIFF(day,GETDATE(),[MaturityDate])/365.0 AS [CurrentRemainingTerm]'')
+	IF(CHARINDEX(''[DayToList]'',@columns) > 0)
+		set @columns = REPLACE(@columns, ''[DayToList]'', ''DATEDIFF(day, GETDATE(), ListingDate) AS [DayToList]'')
+	
+	SET @sqlCommand = ''WITH''
+					+ ''	NextPayDateTable AS'' -- store next coupon date
+					+ ''	(''
+					+ ''	SELECT BondID AS id1,MIN([Date]) AS NextPayDate ''
+					+ ''	FROM CashflowsInfo''
+					+ ''	WHERE [date] > GETDATE()''
+					+ ''	GROUP BY BondID''
+					+ ''	),''
+					+ ''	PrePayDateTable AS'' -- store pre coupon date
+					+ ''	(''
+					+ ''	SELECT BondID AS id2,MAX([Date]) AS PrePayDate ''
+					+ ''	FROM CashflowsInfo''
+					+ ''	WHERE [date] < GETDATE()''
+					+ ''	GROUP BY BondID''
+					+ ''	),''
+					+ ''	PreAndNextDate AS'' -- store both two date
+					+ ''	(''
+					+ ''	SELECT id1 AS id1,id2 AS id2,PrePayDate AS PreviousCouponDate,NextPayDate AS NextCouponDate''
+					+ ''	FROM NextPayDateTable''
+					+ ''	FULL JOIN PrePayDateTable''
+					+ ''	ON id1 = id2''
+					+ ''	GROUP BY id1,id2,PrePayDate,NextPayDate''
+					+ ''	)''
+					+ '' SELECT '' + [vav].[ColumnPreprocess](@columns) + @columns
+					+ '' FROM '' + @tableName 
+					+ ''	JOIN PreAndNextDate'' -- find pre and next coupon date
+					+ ''	ON AssetId = id1 OR AssetId = id2''
+					+ '' WHERE BondClassCd = ''''BTB'''''' -- check if Book-Entry Treasury Bonds
+					+ '' AND CouponClassCd = ''''FIX'''''' -- check if Fixed Coupon
+					+ '' AND DATEDIFF(day, '''''' + CONVERT(varchar,@firstDayOfContractMonth,121) + '''''',[MaturityDate])/365.0 < '' + CONVERT(varchar, @EndTerm)
+					+ '' AND DATEDIFF(day, '''''' + CONVERT(varchar,@firstDayOfContractMonth,121) + '''''',[MaturityDate])/365.0 >= '' + CONVERT(varchar, @StartTerm)
+					+ '' AND AssetId IN ('' + @findListingIds + '')''
+					+ '' AND AssetId NOT IN ('' + @idsToExclude + '')''
+
+	IF(@IncludeUnlist = 0)
+		SET @sqlCommand += '' AND [ListingDate] < GETDATE()''
+	
+	SET @sqlCommand += '' ORDER BY [OrigDatedDate] DESC''
+
+    PRINT @sqlCommand
+	EXEC (@sqlCommand)
+	DROP TABLE #NextWorkDay
+	SELECT @EndTime = GETDATE()   
+	PRINT ''Duration in microseconds : '' + CONVERT(varchar, DATEDIFF(ms,@StartTime,@EndTime))
+END
+
+' 
+END
+GO

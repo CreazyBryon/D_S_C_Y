@@ -1,0 +1,50 @@
+﻿SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[GetIssuerRating]') AND type in (N'P', N'PC'))
+BEGIN
+EXEC dbo.sp_executesql @statement = N'
+
+-- =============================================
+-- Author:		Qing Sheng
+-- Create date: 2014-08-05
+-- Description:	Get Issuer Rating
+-- =============================================
+CREATE PROCEDURE [dbo].[GetIssuerRating]
+	-- Add the parameters for the stored procedure here
+	@ID bigint,
+	@Culture varchar(10) = ''zh-CN''
+AS
+BEGIN
+	-- SET NOCOUNT ON added to prevent extra result sets from
+	-- interfering with SELECT statements.
+	SET NOCOUNT ON;
+
+    IF @Culture = ''zh-CN''
+		select zcx.RATE_ORG_CRED_HIS.*,
+		zcx.RATE_ORG_INFO_F.COM_CHI_NAME as Org,
+		zcx.RATE_REP.RATE_TITLE
+		from zcx.RATE_ORG_CRED_HIS,zcx.RATE_ORG_INFO_F,zcx.RATE_REP
+		where zcx.RATE_ORG_CRED_HIS.COM_UNI_CODE = @ID
+		and zcx.RATE_ORG_CRED_HIS.ORG_UNI_CODE = zcx.RATE_ORG_INFO_F.COM_UNI_CODE
+		and zcx.RATE_ORG_CRED_HIS.RATE_ID = zcx.RATE_REP.RATE_ID
+		and zcx.RATE_ORG_CRED_HIS.ISVALID = 1
+		order by zcx.RATE_ORG_CRED_HIS.RATE_WRIT_DATE desc
+	ELSE
+		select zcx.RATE_ORG_CRED_HIS.*,
+		zcx.RATE_ORG_INFO_F.COM_ENG_NAME as Org,
+		zcx.RATE_REP.RATE_TITLE
+		from zcx.RATE_ORG_CRED_HIS,zcx.RATE_ORG_INFO_F,zcx.RATE_REP
+		where zcx.RATE_ORG_CRED_HIS.COM_UNI_CODE = @ID
+		and zcx.RATE_ORG_CRED_HIS.ORG_UNI_CODE = zcx.RATE_ORG_INFO_F.COM_UNI_CODE
+		and zcx.RATE_ORG_CRED_HIS.RATE_ID = zcx.RATE_REP.RATE_ID
+		and zcx.RATE_ORG_CRED_HIS.ISVALID = 1
+		order by zcx.RATE_ORG_CRED_HIS.RATE_WRIT_DATE desc
+	
+END
+
+
+' 
+END
+GO

@@ -1,0 +1,4 @@
+﻿IF NOT EXISTS (SELECT * FROM sys.schemas WHERE name = N'rmds')
+EXEC sys.sp_executesql N'CREATE SCHEMA [rmds] AUTHORIZATION [dbo]'
+
+GO

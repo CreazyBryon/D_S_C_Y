@@ -1,0 +1,73 @@
+﻿SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[vav].[GetLufaxInvestmentInfo]') AND type in (N'P', N'PC'))
+BEGIN
+EXEC dbo.sp_executesql @statement = N'
+CREATE PROCEDURE [vav].[GetLufaxInvestmentInfo] (
+	@Category varchar(500)=''all'',
+	@Term varchar(30)=''all'',
+	@Amount varchar(10)=''all'',
+	@Yield varchar(30)=''all'',
+	@ProductName nvarchar(200)='''',
+	@ColumnList varchar(4000)=''''
+)
+AS
+BEGIN
+	-- SET NOCOUNT ON added to prevent extra result sets from
+	-- interfering with SELECT statements.
+	SET NOCOUNT ON;
+	
+	DECLARE @sqlCommand nvarchar(4000)
+	DECLARE @tableName nvarchar(50)
+	DECLARE @filter nvarchar(1000)
+	
+	SET @filter = ''''
+	SET @tableName = ''vav.v_LufaxInvestment''
+		
+	IF @ProductName != ''''
+	BEGIN
+		SET @filter = '' b.ProductName LIKE N''''%'' + REPLACE(@ProductName, N'''''''', N'''''''''''') + ''%'''' ESCAPE ''''\'''''' 
+		SET @sqlCommand = ''SELECT ChannelID, IsNew, StateCode, CategoryID, '' + @ColumnList + '' FROM '' + @tableName
+						+ '' AS b WHERE ''
+						+ @filter
+	END
+	ELSE
+	BEGIN
+		SET @sqlCommand = ''SELECT ChannelID, IsNew, StateCode, CategoryID, '' + @ColumnList + '' FROM '' + @tableName 
+						+ '' AS b ''
+	
+		IF (@Category != ''all'' OR @Term != ''all'' OR @Yield != ''all'' 
+			OR @Amount != ''all'' )
+		BEGIN
+			
+			SET @sqlCommand += '' WHERE ''
+			
+			IF @Category != ''all''
+				SET @filter = '' CONVERT(nvarchar(20), b.CategoryID) IN ('' + @Category + '')''
+
+			IF @Term != ''all''
+				SET @filter += CASE @filter WHEN '''' THEN '''' ELSE '' AND '' END 
+							+ '' b.TermCode='''''' + @Term + ''''''''
+			
+			IF @Yield != ''all''
+				SET @filter += CASE @filter WHEN '''' THEN '''' ELSE '' AND '' END 
+							+ '' b.YieldCode='''''' + @Yield + ''''''''
+							
+			IF @Amount != ''all''
+				SET @filter += CASE @filter WHEN '''' THEN '''' ELSE '' AND '' END 
+							+ '' b.AmountCode='''''' + @Amount + ''''''''
+		END
+		
+		SET @sqlCommand += @filter 
+	END
+	
+	SET @sqlCommand += '' Order By b.CreateDate desc ''
+	
+	PRINT @sqlCommand
+	EXEC (@sqlCommand)
+END
+' 
+END
+GO

@@ -1,0 +1,16 @@
+﻿SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[ejv].[govcorp.asset_ident]') AND type in (N'U'))
+BEGIN
+CREATE TABLE [ejv].[govcorp.asset_ident](
+	[assetId] [char](16) NOT NULL,
+	[id_cd] [char](3) NOT NULL,
+	[id_eff_dt] [datetime] NOT NULL,
+	[id_number] [varchar](20) NULL,
+	[iss_type_cd] [char](3) NULL,
+	[id_type] [char](1) NULL
+) ON [PRIMARY]
+END
+GO

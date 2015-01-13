@@ -1,0 +1,18 @@
+﻿SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[ejv].[gcodes.rating_cds]') AND type in (N'U'))
+BEGIN
+CREATE TABLE [ejv].[gcodes.rating_cds](
+	[rating_cd] [varchar](100) NOT NULL,
+	[rating_src_cd] [char](3) NOT NULL,
+	[rank] [int] NOT NULL,
+	[sp_equiv_rank] [int] NULL,
+	[iso_lcntry_cd] [char](30) NULL,
+	[grade_cd] [char](30) NULL,
+	[base_fl] [char](1) NULL,
+	[preliminary_fl] [char](1) NULL
+) ON [PRIMARY]
+END
+GO

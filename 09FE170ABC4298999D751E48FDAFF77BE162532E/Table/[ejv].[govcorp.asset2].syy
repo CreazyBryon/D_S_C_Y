@@ -1,0 +1,64 @@
+﻿SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[ejv].[govcorp.asset2]') AND type in (N'U'))
+BEGIN
+CREATE TABLE [ejv].[govcorp.asset2](
+	[asset_id] [char](16) NOT NULL,
+	[aaoifi_compliant_fl] [varchar](1) NULL,
+	[addl_credit_fl] [varchar](1) NULL,
+	[announcement_dt] [datetime] NULL,
+	[borrower_id] [char](16) NULL,
+	[calc_disable_rsn] [varchar](100) NULL,
+	[callable_notation] [varchar](20) NULL,
+	[cav_maturity_amt] [float] NULL,
+	[cdc_asset_class_cd] [varchar](3) NULL,
+	[cfi] [varchar](6) NULL,
+	[conver_cd] [varchar](2) NULL,
+	[cur_accr_dt] [datetime] NULL,
+	[cur_int_defer_fl] [varchar](1) NULL,
+	[cusip_change_cd] [varchar](4) NULL,
+	[cusip_change_dt] [datetime] NULL,
+	[dfrd_int_cnvrsn_dt] [datetime] NULL,
+	[facility] [varchar](20) NULL,
+	[facility_amt] [float] NULL,
+	[flip_opt_cd] [varchar](2) NULL,
+	[flip_opt_dt] [datetime] NULL,
+	[green_bond_fl] [varchar](1) NULL,
+	[issue_id] [char](16) NULL,
+	[liquidation_preference_cd] [varchar](6) NULL,
+	[local_iss_dt] [datetime] NULL,
+	[next_par_call_dt] [datetime] NULL,
+	[next_par_call_px] [float] NULL,
+	[odd_first_cpn_fl] [varchar](1) NULL,
+	[odd_last_cpn_fl] [varchar](1) NULL,
+	[orig_cusip_type_cd] [varchar](2) NULL,
+	[prerefunded_fl] [varchar](1) NULL,
+	[prtl_redemp_fl] [varchar](1) NULL,
+	[reoffered_dt] [datetime] NULL,
+	[reoffered_fl] [varchar](1) NULL,
+	[repo_elig_fl] [varchar](1) NULL,
+	[repo_elig_id] [char](16) NULL,
+	[risk_classifications_cd] [varchar](3) NULL,
+	[risk_country_cd] [varchar](3) NULL,
+	[security_cd] [varchar](8) NULL,
+	[seniority_cd] [varchar](8) NULL,
+	[series] [varchar](50) NULL,
+	[sharia_opinion_fl] [varchar](1) NULL,
+	[solvability_ratio] [smallint] NULL,
+	[straight_bond_fl] [varchar](1) NULL,
+	[sukuk_structure_fl] [varchar](1) NULL,
+	[super_sinker_fl] [varchar](1) NULL,
+	[survivor_opt_fl] [varchar](1) NULL,
+	[tier_capital_cd] [varchar](3) NULL,
+	[us_baby_bond_fl] [varchar](1) NULL,
+	[latest_iss_dt] [datetime] NULL,
+	[latest_iss_px] [float] NULL,
+PRIMARY KEY CLUSTERED 
+(
+	[asset_id] ASC
+)WITH (PAD_INDEX  = OFF, STATISTICS_NORECOMPUTE  = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS  = ON, ALLOW_PAGE_LOCKS  = ON) ON [PRIMARY]
+) ON [PRIMARY]
+END
+GO

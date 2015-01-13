@@ -1,0 +1,17 @@
+﻿SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[ejv].[gcodes.day_cnt_cds]') AND type in (N'U'))
+BEGIN
+CREATE TABLE [ejv].[gcodes.day_cnt_cds](
+	[day_cnt_cd] [int] NOT NULL,
+	[day_cnt_descr] [varchar](40) NULL,
+	[day_cnt_ldescr] [varchar](60) NULL,
+PRIMARY KEY CLUSTERED 
+(
+	[day_cnt_cd] ASC
+)WITH (PAD_INDEX  = OFF, STATISTICS_NORECOMPUTE  = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS  = ON, ALLOW_PAGE_LOCKS  = ON) ON [PRIMARY]
+) ON [PRIMARY]
+END
+GO

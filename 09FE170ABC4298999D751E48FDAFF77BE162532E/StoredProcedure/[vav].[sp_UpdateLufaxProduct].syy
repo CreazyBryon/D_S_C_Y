@@ -1,0 +1,39 @@
+﻿SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[vav].[sp_UpdateLufaxProduct]') AND type in (N'P', N'PC'))
+BEGIN
+EXEC dbo.sp_executesql @statement = N'
+
+
+
+
+
+-- =============================================
+-- Author:		wss
+-- Create date: 2014-10-20
+-- Description:	将一个Table作为存储过程的参数实现数据同步更新
+-- =============================================
+CREATE PROCEDURE [vav].[sp_UpdateLufaxProduct]
+	@dt LufaxProductTT READONLY
+AS
+BEGIN
+	Merge Into [vav].[LufaxProduct] T
+	using @dt S on T.[ChannelID]=S.[ChannelID]
+	When Matched  Then Update set T.[CategoryID]=S.[CategoryID],T.[ProductName]=S.[ProductName],T.[ProductType]=S.[ProductType],T.[DOMAIN]=S.[DOMAIN],T.[MinPeriod]=S.[MinPeriod],T.[MaxPeriod]=S.[MaxPeriod],T.[PeriodUnit]=S.[PeriodUnit],T.[MinCapitalAmount]=S.[MinCapitalAmount],T.[MaxCapitalAmount]=S.[MaxCapitalAmount],T.[MinCapitalCost]=S.[MinCapitalCost],T.[MaxCapitalCost]=S.[MaxCapitalCost],T.[MinExpectedRate]=S.[MinExpectedRate],T.[MaxExpectedRate]=S.[MaxExpectedRate],T.[Minimal]=S.[Minimal],T.[Rating]=S.[Rating],T.[States]=S.[States],T.[ModifyDate]=getdate()
+	When Not Matched By Target Then Insert ([ChannelID],[CategoryID],[ProductName],[ProductType],[DOMAIN],[MinPeriod],[MaxPeriod],[PeriodUnit],[MinCapitalAmount],[MaxCapitalAmount],[MinCapitalCost],[MaxCapitalCost],[MinExpectedRate],[MaxExpectedRate],[Minimal],[Rating],[States],[CreateDate],[ModifyDate]) VALUES(S.[ChannelID],S.[CategoryID],S.[ProductName],S.[ProductType],S.[DOMAIN],S.[MinPeriod],S.[MaxPeriod],S.[PeriodUnit],S.[MinCapitalAmount],S.[MaxCapitalAmount],S.[MinCapitalCost],S.[MaxCapitalCost],S.[MinExpectedRate],S.[MaxExpectedRate],S.[Minimal],S.[Rating],S.[States],S.CreateDate,getdate())
+	;
+    --When Not Matched By Source Then --Delete;
+   
+END
+
+
+
+
+
+
+
+' 
+END
+GO

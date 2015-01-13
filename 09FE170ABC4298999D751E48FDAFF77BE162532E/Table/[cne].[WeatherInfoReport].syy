@@ -1,0 +1,40 @@
+﻿SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[cne].[WeatherInfoReport]') AND type in (N'U'))
+BEGIN
+CREATE TABLE [cne].[WeatherInfoReport](
+	[country] [varchar](50) NULL,
+	[location] [varchar](50) NOT NULL,
+	[Pcia] [varchar](50) NULL,
+	[en_province] [varchar](50) NULL,
+	[cn_province] [nvarchar](50) NULL,
+	[period] [varchar](50) NOT NULL,
+	[Temp_MED] [numeric](18, 2) NULL,
+	[Temp_MAX] [numeric](18, 2) NULL,
+	[Temp_MIN] [numeric](18, 2) NULL,
+	[Precipitation] [numeric](18, 2) NULL,
+	[YOY_MED] [numeric](18, 4) NULL,
+	[YOY_MAX] [numeric](18, 4) NULL,
+	[YOY_MIN] [numeric](18, 4) NULL,
+	[YOY_PERCI] [numeric](18, 4) NULL,
+	[MOM_MED] [numeric](18, 4) NULL,
+	[MOM_MAX] [numeric](18, 4) NULL,
+	[MOM_MIN] [numeric](18, 4) NULL,
+	[MOM_PERCI] [numeric](18, 4) NULL,
+	[update_date] [datetime] NULL,
+ CONSTRAINT [PK_WeatherInfoReport] PRIMARY KEY CLUSTERED 
+(
+	[location] ASC,
+	[period] ASC
+)WITH (PAD_INDEX  = OFF, STATISTICS_NORECOMPUTE  = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS  = ON, ALLOW_PAGE_LOCKS  = ON) ON [PRIMARY]
+) ON [PRIMARY]
+END
+GO
+IF NOT EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_WeatherInfoReport_update_date]') AND type = 'D')
+BEGIN
+ALTER TABLE [cne].[WeatherInfoReport] ADD  CONSTRAINT [DF_WeatherInfoReport_update_date]  DEFAULT (getdate()) FOR [update_date]
+END
+
+GO

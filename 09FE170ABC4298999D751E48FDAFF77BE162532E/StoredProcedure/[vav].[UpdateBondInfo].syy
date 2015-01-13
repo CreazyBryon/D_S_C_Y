@@ -1,0 +1,275 @@
+﻿SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[vav].[UpdateBondInfo]') AND type in (N'P', N'PC'))
+BEGIN
+EXEC dbo.sp_executesql @statement = N'
+/* 20150106 Add 2 column  by d=yy
+   ,[TotalAppliedFor] = bondView.[TotalAppliedFor]
+   ,[ProvinceOrder] = bondView.[ProvinceOrder]
+*/
+CREATE PROCEDURE [vav].[UpdateBondInfo] (  
+ @LastSyncTime datetime,  
+ @CurrentSyncTime datetime,  
+ @Result varchar(400) output  
+)  
+AS  
+BEGIN  
+ -- SET NOCOUNT ON added to prevent extra result sets from  
+ -- interfering with SELECT statements.  git com
+ SET NOCOUNT ON;  
+   
+ /*Update BondInfoCn*/  
+ BEGIN TRANSACTION;  
+  
+ BEGIN TRY  
+  UPDATE [vav].[BondInfoCn]  
+  SET [Code] = bondView.[Code]  
+   ,[Ric] = bondView.[Ric]  
+   ,[ShortName] = bondView.[ShortName]  
+   ,[IssueDate] = bondView.[IssueDate]  
+   ,[IssueAmount] = bondView.[IssueAmount]  
+   ,[InterestRate] = bondView.[InterestRate]  
+   ,[IssuePrice] = bondView.[IssuePrice]  
+   ,[Term] = bondView.[Term]  
+   ,[BondClassCd] = bondView.[BondClassCd]  
+   ,[BondClassDescr] = bondView.[BondClassDescr]  
+   ,[Option] = bondView.[Option]   
+   ,[CouponClassCd] = bondView.[CouponClassCd]  
+   ,[CouponClassDescr] = bondView.[CouponClassDescr]  
+   ,[PayFrequencyCd] = bondView.[PayFrequencyCd]  
+   ,[PayFrequency] = bondView.[PayFrequency]  
+   ,[AnnoucementDate] = bondView.[AnnoucementDate]  
+   ,[OrigDatedDate] = bondView.[OrigDatedDate]  
+   ,[MaturityDate] = bondView.[MaturityDate]  
+   ,[ListingDate] = bondView.[ListingDate]  
+   ,[FloatIndex] = bondView.[FloatIndex]  
+   ,[FloatIndexDescr] = bondView.[FloatIndexDescr]  
+   ,[FloatOffset] = bondView.[FloatOffset]  
+   ,[RatingCd] = bondView.[RatingCd]  
+   ,[RatingSrcCd] = bondView.[RatingSrcCd]  
+   ,[RatingSrcDescr] = bondView.[RatingSrcDescr]  
+   ,[PartyRatingCd] = bondView.[PartyRatingCd]  
+   ,[PartyRatingSrcCd] = bondView.[PartyRatingSrcCd]  
+   ,[PartyRatingSrcDescr] = bondView.[PartyRatingSrcDescr]  
+   ,[FirstDayClosingPrice] = bondView.[FirstDayClosingPrice]  
+   ,[FirstDayChange] = bondView.[FirstDayChange]  
+   ,[FirstDayVolume] = bondView.[FirstDayVolume]  
+   ,[FirstDayTurnoverRate] = bondView.[FirstDayTurnoverRate]  
+   ,[Issuer] = bondView.[Issuer]  
+   ,[BookManager] = bondView.[BookManager]  
+   ,[LeadUnderWriter] = bondView.[LeadUnderWriter]  
+   ,[CoUnderWriter] = bondView.[CoUnderWriter]  
+   ,[UnderWriterMember] = bondView.[UnderWriterMember]  
+   ,[PayDate] = bondView.[PayDate]   
+   ,[BondName] = bondView.[BondName]  
+   ,[StatusOnLiqCd] = bondView.[StatusOnLiqCd]  
+   ,[StatusOnLiqDescr] = bondView.[StatusOnLiqDescr]  
+   ,[CodeList] = bondView.[CodeList]  
+   ,[IssuerInduSectorCd] = bondView.[IssuerInduSectorCd]  
+   ,[IssuerInduSubSectorDescr] = bondView.[IssuerInduSubSectorDescr]  
+   ,[EndDateOfIssue] = bondView.[EndDateOfIssue]  
+   ,[IssueTypeCd] = bondView.[IssueTypeCd]  
+   ,[IssueTypeDescr] = bondView.[IssueTypeDescr]  
+   ,[AuctionType] = bondView.[AuctionType]  
+   ,[AuctionDate] = bondView.[AuctionDate]  
+   ,[SeniorityCd] = bondView.[SeniorityCd]  
+   ,[SeniorityDescr] = bondView.[SeniorityDescr]  
+   ,[CIBondFlag] = bondView.[CIBondFlag]  
+   ,[CIBondFlagDescr] = bondView.[CIBondFlagDescr]  
+   ,[TapIssueFlag] = bondView.[TapIssueFlag]  
+   ,[TermEx] = bondView.[TermEx]  
+   ,[ItermEx] = bondView.[ItermEx]  
+   ,[ProvinceOfIssuer] = bondView.[ProvinceOfIssuer]  
+   ,[GuarantorRating] = bondView.[GuarantorRating]  
+   ,[AuctionOject] = bondView.[AuctionOject]  
+   ,[GuarantorItem] = bondView.[GuarantorItem]  
+   ,[UnderWriterType] = bondView.[UnderWriterType]  
+   ,[BidPrice] = bondView.[BidPrice]  
+   ,[BidRegion] = bondView.[BidRegion]  
+   ,[MultiPurchase] = bondView.[MultiPurchase]  
+   ,[FeeRate] = bondView.[FeeRate]  
+   ,[OnlinePosition] = bondView.[OnlinePosition]  
+   ,[OnlineCode] = bondView.[OnlineCode]  
+   ,[Domicile] = bondView.[Domicile]  
+   ,[DebtTypeCd] = bondView.[DebtTypeCd]  
+   ,[DebtTypeDescr] = bondView.[DebtTypeDescr]  
+   ,[AssetTypeCd] = bondView.[AssetTypeCd]  
+   ,[AssetTypeDescr] = bondView.[AssetTypeDescr]  
+   ,[PartyCntryIncorpCd] = bondView.[PartyCntryIncorpCd]  
+   ,[PartyCntryIncorpDescr] = bondView.[PartyCntryIncorpDescr]  
+   ,[IssuerDomicile] = bondView.[IssuerDomicile]  
+   ,[RatingInfoCd] = bondView.[RatingInfoCd]  
+   ,[RatingInfo] = bondView.[RatingInfo]  
+   ,[SecClassCd] = bondView.[SecClassCd]  
+   ,[LastChangeDate] = bondView.[LastChangeDate]  
+   ,[OthBondTypeCd] = bondView.[OthBondTypeCd]  
+   ,[IssueCountryCd] = bondView.[IssueCountryCd]  
+   ,[IssueCountry]= bondView.[IssueCountry]
+   ,[TotalAppliedFor] = bondView.[TotalAppliedFor]
+   ,[ProvinceOrder] = bondView.[ProvinceOrder]
+   ,[TrusteeCode] = bondView.[TrusteeCode] 
+   ,[TrusteeName] = bondView.[TrusteeCode] 
+   ,[ExchangeCode] = bondView.[ExchangeCode] 
+   ,[ExchangeName] = bondView.[ExchangeName] 
+   FROM [vav].[BondInfoCn] AS bondTable  
+   JOIN [vav].[v_bond_cn] AS bondView ON bondTable.[AssetId] = bondView.[AssetId]  
+   WHERE bondView.LastChangeDate >= @LastSyncTime AND bondView.LastChangeDate <= @CurrentSyncTime  
+     
+   /*Inset new bond into BondInfoCn*/  
+   INSERT INTO [vav].[BondInfoCn]  
+   SELECT *   
+   FROM [vav].[v_bond_cn]   
+   WHERE AssetId NOT IN (  
+   SELECT AssetId From [vav].[BondInfoCn]  
+   )  
+        
+   /*Update BondInfoEn*/  
+  UPDATE [vav].[BondInfoEn]  
+  SET [Code] = bondView.[Code]  
+   ,[Ric] = bondView.[Ric]  
+   ,[ShortName] = bondView.[ShortName]  
+   ,[IssueDate] = bondView.[IssueDate]  
+   ,[IssueAmount] = bondView.[IssueAmount]  
+   ,[InterestRate] = bondView.[InterestRate]  
+   ,[IssuePrice] = bondView.[IssuePrice]  
+   ,[Term] = bondView.[Term]  
+   ,[BondClassCd] = bondView.[BondClassCd]  
+   ,[BondClassDescr] = bondView.[BondClassDescr]  
+   ,[Option] = bondView.[Option]   
+   ,[CouponClassCd] = bondView.[CouponClassCd]  
+   ,[CouponClassDescr] = bondView.[CouponClassDescr]  
+   ,[PayFrequencyCd] = bondView.[PayFrequencyCd]  
+   ,[PayFrequency] = bondView.[PayFrequency]  
+   ,[AnnoucementDate] = bondView.[AnnoucementDate]  
+   ,[OrigDatedDate] = bondView.[OrigDatedDate]  
+   ,[MaturityDate] = bondView.[MaturityDate]  
+   ,[ListingDate] = bondView.[ListingDate]  
+   ,[FloatIndex] = bondView.[FloatIndex]  
+   ,[FloatIndexDescr] = bondView.[FloatIndexDescr]  
+   ,[FloatOffset] = bondView.[FloatOffset]  
+   ,[RatingCd] = bondView.[RatingCd]  
+   ,[RatingSrcCd] = bondView.[RatingSrcCd]  
+   ,[RatingSrcDescr] = bondView.[RatingSrcDescr]  
+   ,[PartyRatingCd] = bondView.[PartyRatingCd]  
+   ,[PartyRatingSrcCd] = bondView.[PartyRatingSrcCd]  
+   ,[PartyRatingSrcDescr] = bondView.[PartyRatingSrcDescr]  
+   ,[FirstDayClosingPrice] = bondView.[FirstDayClosingPrice]  
+   ,[FirstDayChange] = bondView.[FirstDayChange]  
+   ,[FirstDayVolume] = bondView.[FirstDayVolume]  
+   ,[FirstDayTurnoverRate] = bondView.[FirstDayTurnoverRate]  
+   ,[Issuer] = bondView.[Issuer]  
+   ,[BookManager] = bondView.[BookManager]  
+   ,[LeadUnderWriter] = bondView.[LeadUnderWriter]  
+   ,[CoUnderWriter] = bondView.[CoUnderWriter]  
+   ,[UnderWriterMember] = bondView.[UnderWriterMember]  
+   ,[PayDate] = bondView.[PayDate]   
+   ,[BondName] = bondView.[BondName]  
+   ,[StatusOnLiqCd] = bondView.[StatusOnLiqCd]  
+   ,[StatusOnLiqDescr] = bondView.[StatusOnLiqDescr]  
+   ,[CodeList] = bondView.[CodeList]  
+   ,[IssuerInduSectorCd] = bondView.[IssuerInduSectorCd]  
+   ,[IssuerInduSubSectorDescr] = bondView.[IssuerInduSubSectorDescr]  
+   ,[EndDateOfIssue] = bondView.[EndDateOfIssue]  
+   ,[IssueTypeCd] = bondView.[IssueTypeCd]  
+   ,[IssueTypeDescr] = bondView.[IssueTypeDescr]  
+   ,[AuctionType] = bondView.[AuctionType]  
+   ,[AuctionDate] = bondView.[AuctionDate]  
+   ,[SeniorityCd] = bondView.[SeniorityCd]  
+   ,[SeniorityDescr] = bondView.[SeniorityDescr]  
+   ,[CIBondFlag] = bondView.[CIBondFlag]  
+   ,[CIBondFlagDescr] = bondView.[CIBondFlagDescr]  
+   ,[TapIssueFlag] = bondView.[TapIssueFlag]  
+   ,[TermEx] = bondView.[TermEx]  
+   ,[ItermEx] = bondView.[ItermEx]  
+   ,[ProvinceOfIssuer] = bondView.[ProvinceOfIssuer]  
+   ,[GuarantorRating] = bondView.[GuarantorRating]  
+   ,[AuctionOject] = bondView.[AuctionOject]  
+   ,[GuarantorItem] = bondView.[GuarantorItem]  
+   ,[UnderWriterType] = bondView.[UnderWriterType]  
+   ,[BidPrice] = bondView.[BidPrice]  
+   ,[BidRegion] = bondView.[BidRegion]  
+   ,[MultiPurchase] = bondView.[MultiPurchase]  
+   ,[FeeRate] = bondView.[FeeRate]  
+   ,[OnlinePosition] = bondView.[OnlinePosition]  
+   ,[OnlineCode] = bondView.[OnlineCode]  
+   ,[Domicile] = bondView.[Domicile]  
+   ,[DebtTypeCd] = bondView.[DebtTypeCd]  
+   ,[DebtTypeDescr] = bondView.[DebtTypeDescr]  
+   ,[AssetTypeCd] = bondView.[AssetTypeCd]  
+   ,[AssetTypeDescr] = bondView.[AssetTypeDescr]  
+   ,[PartyCntryIncorpCd] = bondView.[PartyCntryIncorpCd]  
+   ,[PartyCntryIncorpDescr] = bondView.[PartyCntryIncorpDescr]  
+   ,[IssuerDomicile] = bondView.[IssuerDomicile]  
+   ,[RatingInfoCd] = bondView.[RatingInfoCd]  
+   ,[RatingInfo] = bondView.[RatingInfo]  
+   ,[SecClassCd] = bondView.[SecClassCd]  
+   ,[LastChangeDate] = bondView.[LastChangeDate]  
+   ,[IssueCountry] = bondView.[IssueCountry]  
+   ,[IssueCountryCd] = bondView.[IssueCountryCd]  
+   ,[OthBondTypeCd] = bondView.[OthBondTypeCd]  
+   ,[TotalAppliedFor] = bondView.[TotalAppliedFor]
+   ,[ProvinceOrder] = bondView.[ProvinceOrder]
+   ,[TrusteeCode] = bondView.[TrusteeCode] 
+   ,[TrusteeName] = bondView.[TrusteeCode] 
+   ,[ExchangeCode] = bondView.[ExchangeCode] 
+   ,[ExchangeName] = bondView.[ExchangeName] 
+   FROM [vav].[BondInfoEn] AS bondTable  
+   JOIN [vav].[v_bond_en] AS bondView ON bondTable.[AssetId] = bondView.[AssetId]  
+   WHERE bondView.LastChangeDate >= @LastSyncTime AND bondView.LastChangeDate <= @CurrentSyncTime  
+     
+   /*Inset new bond into BondInfoEn*/  
+   INSERT INTO [vav].[BondInfoEn]  
+   SELECT *   
+   FROM [vav].[v_bond_en]   
+   WHERE AssetId NOT IN (  
+   SELECT AssetId From [vav].[BondInfoEn]  
+   )  
+    
+  DELETE FROM [vav].[BondInfoCn]  
+  WHERE assetId in (SELECT assetId FROM ejv.[govcorp.asset] WHERE asset_status_cd = ''can'')  
+  
+  DELETE FROM [vav].[BondInfoEn]  
+  WHERE assetId in (SELECT assetId FROM ejv.[govcorp.asset] WHERE asset_status_cd = ''can'')  
+    
+  DELETE  FROM [vav].[BondInfoCn]  
+  WHERE assetId in (SELECT assetId FROM ejv.[govcorp.notes] WHERE note_type_cd = ''POST'')  
+      
+  DELETE  FROM [vav].[BondInfoEn]  
+  WHERE assetId in (SELECT assetId FROM ejv.[govcorp.notes] WHERE note_type_cd = ''POST'')  
+    
+  UPDATE [vav].[BondInfoCn]  
+  SET IssueCountryCd = ''TW'', IssueCountry = N''台湾''  
+  WHERE SecClassCd = ''FORM''  
+    
+  UPDATE [vav].[BondInfoEn]  
+  SET IssueCountryCd = ''TW'', IssueCountry = ''Taiwan''  
+  WHERE SecClassCd = ''FORM''  
+    
+  EXEC [vav].[SyncBondInfo]  
+  SET @Result = ''Success!''   
+             
+ END TRY  
+ BEGIN CATCH  
+  SELECT   
+   ERROR_NUMBER() AS ErrorNumber  
+   ,ERROR_SEVERITY() AS ErrorSeverity  
+   ,ERROR_STATE() AS ErrorState  
+   ,ERROR_PROCEDURE() AS ErrorProcedure  
+   ,ERROR_LINE() AS ErrorLine  
+   ,ERROR_MESSAGE() AS ErrorMessage;  
+    
+  SET @Result = ''Error! '' + ERROR_MESSAGE()  
+     
+  IF @@TRANCOUNT > 0  
+   ROLLBACK TRANSACTION;  
+    END CATCH;  
+  
+ IF @@TRANCOUNT > 0  
+  COMMIT TRANSACTION;  
+END  
+
+' 
+END
+GO

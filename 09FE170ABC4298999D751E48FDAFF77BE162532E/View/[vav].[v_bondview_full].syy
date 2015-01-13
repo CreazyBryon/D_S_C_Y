@@ -1,0 +1,222 @@
+﻿SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+IF NOT EXISTS (SELECT * FROM sys.views WHERE object_id = OBJECT_ID(N'[vav].[v_bondview_full]'))
+EXEC dbo.sp_executesql @statement = N'
+
+
+CREATE VIEW [vav].[v_bondview_full]
+AS
+SELECT
+bondCn.AssetId AS assetId, 
+bondCn.ShortName AS bond_name_cn,
+bondEn.ShortName AS bond_name_en,
+bondCn.Code AS code,
+bondCn.IssueAmount * 100000 AS amt_iss_tot,
+bondCn.CouponClassDescr AS coupon_class_cn,
+bondEn.CouponClassDescr AS coupon_class_en,
+bondCn.Isfloat AS isfloat,
+bondCn.PayFrequency AS freq_cn,
+bondEn.PayFrequency AS freq_en,
+bondCn.InterestRate AS orig_iss_cpn,
+bondCn.OrigDatedDate AS orig_dated_dt,
+bondCn.MaturityDate AS maturity_dt,
+bondCn.OrigTerm AS term,
+bondCn.BondTerm AS BondTerm_cn,
+bondEn.BondTerm AS BondTerm_en,
+bondCn.OrigAvgLife AS orig_avg_life,
+bondCn.BondTermNumber AS bondterm_number,
+bondCn.FloatIndexDescr AS float_index,
+bondCn.FloatOffset AS float_offset,
+bondCn.OptionDescr AS callorput_cn,
+bondEn.OptionDescr AS callorput_en,
+bondCn.IsinNum AS isin_nm,
+bondCn.RatingCd AS latest_rating_cd,
+
+CASE WHEN issDef.wi_type_cd = ''RPN'' THEN issDef.iss_dt ELSE bondCn.IssueDate END AS orig_issue_dt, 
+CASE WHEN issDef.wi_type_cd = ''RPN'' THEN issDef.iss_amt ELSE bondCn.IssueAmount * 100000 END AS orig_iss_amt, 
+CASE WHEN issDef.wi_type_cd = ''RPN'' THEN issDef.iss_yld ELSE bondCn.Yield END AS yield, 
+CASE WHEN issDef.wi_type_cd = ''RPN'' THEN issDef.iss_px ELSE bondCn.IssuePrice END AS orig_iss_px, 
+CASE WHEN issDef.wi_type_cd = ''RPN'' THEN issDef.iss_dt ELSE bondCn.ListingDate END AS listing_dt, 
+CASE WHEN issDef.wi_type_cd = ''RPN'' THEN ''1'' ELSE ''0'' END AS re_issue,
+                      
+(SELECT table_cd
+ FROM vav.Localization
+ WHERE (table_name = ''gcodes.rating_conversion_cds'') AND (english_name = bondCn.RatingCd)) AS rating_number, 
+bondCn.RatingSrcDescr AS rating_src_cn,
+bondEn.RatingSrcDescr AS rating_src_en,
+bondCn.PartyRatingCd AS party_rating_cd,
+(SELECT table_cd
+ FROM vav.Localization
+ WHERE (table_name = ''gcodes.rating_conversion_cds'') AND (english_name = bondCn.PartyRatingCd)) AS party_rating_number, 
+bondCn.PartyRatingSrcDescr AS party_rating_src_cn,
+bondEn.PartyRatingSrcDescr AS party_rating_src_en,
+bondCn.BondClassDescr AS cdc_asset_class_cn,
+bondEn.BondClassDescr AS cdc_asset_class_en,
+bondCn.BondClassCd AS cdc_asset_class_cd,
+bondEn.CIBondFlag AS ci_bond_flag,
+bondCn.ProvinceOfIssuer AS provice_of_issuer_cn,
+bondEn.ProvinceOfIssuer AS provice_of_issuer_en,
+bondEn.ProvinceOfIssuer AS provice_of_issuer,
+(SELECT id
+ FROM vav.CdcAssetClassOrder AS vcaco
+ WHERE cdc_asset_class_cd = bondCn.BondClassCd) AS cdc_asset_class_number,
+bondCn.Issuer AS offer_registrant_name,
+bondCn.DayCountCd,
+(SELECT chinese_name
+ FROM vav.Localization AS Localization_3
+ WHERE table_name = ''gcodes.day_cnt_cds'' AND table_cd = bondCn.DayCountCd) AS day_count_cn,
+(SELECT english_name
+ FROM vav.Localization AS Localization_2
+ WHERE table_name = ''gcodes.day_cnt_cds'' AND table_cd = bondCn.DayCountCd) AS day_count_en,
+bondCn.SeniorityDescr AS seniority,
+bondCn.OrigIssCurrCd AS orig_iss_curr_cd,
+bondCn.ExchangeName AS exchange_name_cn,
+bondEn.ExchangeName AS exchange_name_en,
+bondCn.TrusteeName AS trustee_name_cn,
+bondEn.TrusteeName AS trustee_name_en
+FROM vav.BondInfoCn AS bondCn
+JOIN vav.BondInfoEn AS bondEn ON bondCn.AssetId = bondEn.AssetId AND (bondCn.SecClassCd IS NULL OR (bondCn.SecClassCd != ''DSUM'' AND bondCn.SecClassCd != ''FORM''))
+JOIN ejv.[govcorp.iss_def] AS issDef ON bondCn.AssetId = issDef.asset_id
+
+
+
+
+
+
+' 
+GO
+IF NOT EXISTS (SELECT * FROM ::fn_listextendedproperty(N'MS_DiagramPane1' , N'SCHEMA',N'vav', N'VIEW',N'v_bondview_full', NULL,NULL))
+EXEC sys.sp_addextendedproperty @name=N'MS_DiagramPane1', @value=N'[0E232FF0-B466-11cf-A24F-00AA00A3EFFF, 1.00]
+Begin DesignProperties = 
+   Begin PaneConfigurations = 
+      Begin PaneConfiguration = 0
+         NumPanes = 4
+         Configuration = "(H (1[40] 4[20] 2[20] 3) )"
+      End
+      Begin PaneConfiguration = 1
+         NumPanes = 3
+         Configuration = "(H (1 [50] 4 [25] 3))"
+      End
+      Begin PaneConfiguration = 2
+         NumPanes = 3
+         Configuration = "(H (1 [50] 2 [25] 3))"
+      End
+      Begin PaneConfiguration = 3
+         NumPanes = 3
+         Configuration = "(H (4 [30] 2 [40] 3))"
+      End
+      Begin PaneConfiguration = 4
+         NumPanes = 2
+         Configuration = "(H (1 [56] 3))"
+      End
+      Begin PaneConfiguration = 5
+         NumPanes = 2
+         Configuration = "(H (2 [66] 3))"
+      End
+      Begin PaneConfiguration = 6
+         NumPanes = 2
+         Configuration = "(H (4 [50] 3))"
+      End
+      Begin PaneConfiguration = 7
+         NumPanes = 1
+         Configuration = "(V (3))"
+      End
+      Begin PaneConfiguration = 8
+         NumPanes = 3
+         Configuration = "(H (1[56] 4[18] 2) )"
+      End
+      Begin PaneConfiguration = 9
+         NumPanes = 2
+         Configuration = "(H (1 [75] 4))"
+      End
+      Begin PaneConfiguration = 10
+         NumPanes = 2
+         Configuration = "(H (1[66] 2) )"
+      End
+      Begin PaneConfiguration = 11
+         NumPanes = 2
+         Configuration = "(H (4 [60] 2))"
+      End
+      Begin PaneConfiguration = 12
+         NumPanes = 1
+         Configuration = "(H (1) )"
+      End
+      Begin PaneConfiguration = 13
+         NumPanes = 1
+         Configuration = "(V (4))"
+      End
+      Begin PaneConfiguration = 14
+         NumPanes = 1
+         Configuration = "(V (2))"
+      End
+      ActivePaneConfig = 0
+   End
+   Begin DiagramPane = 
+      Begin Origin = 
+         Top = 0
+         Left = 0
+      End
+      Begin Tables = 
+         Begin Table = "bondCn"
+            Begin Extent = 
+               Top = 6
+               Left = 38
+               Bottom = 125
+               Right = 256
+            End
+            DisplayFlags = 280
+            TopColumn = 0
+         End
+         Begin Table = "bondEn"
+            Begin Extent = 
+               Top = 126
+               Left = 38
+               Bottom = 245
+               Right = 256
+            End
+            DisplayFlags = 280
+            TopColumn = 0
+         End
+         Begin Table = "issDef"
+            Begin Extent = 
+               Top = 246
+               Left = 38
+               Bottom = 365
+               Right = 280
+            End
+            DisplayFlags = 280
+            TopColumn = 0
+         End
+      End
+   End
+   Begin SQLPane = 
+   End
+   Begin DataPane = 
+      Begin ParameterDefaults = ""
+      End
+   End
+   Begin CriteriaPane = 
+      Begin ColumnWidths = 11
+         Column = 1440
+         Alias = 900
+         Table = 1170
+         Output = 720
+         Append = 1400
+         NewValue = 1170
+         SortType = 1350
+         SortOrder = 1410
+         GroupBy = 1350
+         Filter = 1350
+         Or = 1350
+         Or = 1350
+         Or = 1350
+      End
+   End
+End
+' , @level0type=N'SCHEMA',@level0name=N'vav', @level1type=N'VIEW',@level1name=N'v_bondview_full'
+GO
+IF NOT EXISTS (SELECT * FROM ::fn_listextendedproperty(N'MS_DiagramPaneCount' , N'SCHEMA',N'vav', N'VIEW',N'v_bondview_full', NULL,NULL))
+EXEC sys.sp_addextendedproperty @name=N'MS_DiagramPaneCount', @value=1 , @level0type=N'SCHEMA',@level0name=N'vav', @level1type=N'VIEW',@level1name=N'v_bondview_full'
+GO

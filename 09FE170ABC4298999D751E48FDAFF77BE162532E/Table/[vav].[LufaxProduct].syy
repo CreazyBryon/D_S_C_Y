@@ -1,0 +1,45 @@
+﻿SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[vav].[LufaxProduct]') AND type in (N'U'))
+BEGIN
+CREATE TABLE [vav].[LufaxProduct](
+	[ChannelID] [bigint] NOT NULL,
+	[CategoryID] [int] NULL,
+	[ProductName] [nvarchar](max) NULL,
+	[ProductType] [nvarchar](100) NULL,
+	[DOMAIN] [nvarchar](100) NULL,
+	[MinPeriod] [decimal](18, 2) NULL,
+	[MaxPeriod] [decimal](18, 2) NULL,
+	[PeriodUnit] [int] NULL,
+	[MinCapitalAmount] [decimal](18, 2) NULL,
+	[MaxCapitalAmount] [decimal](18, 2) NULL,
+	[MinCapitalCost] [decimal](18, 2) NULL,
+	[MaxCapitalCost] [decimal](18, 2) NULL,
+	[MinExpectedRate] [decimal](18, 2) NULL,
+	[MaxExpectedRate] [decimal](18, 2) NULL,
+	[Minimal] [decimal](18, 2) NULL,
+	[Rating] [nvarchar](10) NULL,
+	[States] [nvarchar](20) NULL,
+	[CreateDate] [datetime] NULL,
+	[ModifyDate] [datetime] NULL,
+PRIMARY KEY CLUSTERED 
+(
+	[ChannelID] ASC
+)WITH (PAD_INDEX  = OFF, STATISTICS_NORECOMPUTE  = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS  = ON, ALLOW_PAGE_LOCKS  = ON) ON [PRIMARY]
+) ON [PRIMARY]
+END
+GO
+IF NOT EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF__LufaxProd__Creat__322D2F9F]') AND type = 'D')
+BEGIN
+ALTER TABLE [vav].[LufaxProduct] ADD  DEFAULT (getdate()) FOR [CreateDate]
+END
+
+GO
+IF NOT EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF__LufaxProd__Modif__332153D8]') AND type = 'D')
+BEGIN
+ALTER TABLE [vav].[LufaxProduct] ADD  DEFAULT (getdate()) FOR [ModifyDate]
+END
+
+GO

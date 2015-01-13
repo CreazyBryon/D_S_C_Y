@@ -1,0 +1,508 @@
+﻿SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+IF NOT EXISTS (SELECT * FROM sys.views WHERE object_id = OBJECT_ID(N'[vav].[v_bond_en]'))
+EXEC dbo.sp_executesql @statement = N'
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+CREATE VIEW [vav].[v_bond_en]
+AS
+
+SELECT 
+asset.assetId AS AssetId,
+assIt1.id_number AS Code,
+assIt2.id_number AS Pyc,
+assRic.id_value AS Ric,
+
+(SELECT TOP (1) id_number 
+ FROM ejv.[govcorp.asset_ident] i 
+ WHERE i.assetId = asset.assetId AND i.id_cd = ''PYC''
+ ORDER BY i.id_eff_dt DESC) AS ShortName, --Use the latest shortname
+ 
+issInfo.orig_issue_dt AS IssueDate,
+(issInfo.orig_iss_amt / 100000) AS IssueAmount,
+issInfo.orig_iss_cpn AS InterestRate,
+issInfo.orig_iss_px AS IssuePrice,
+asset.cntry_of_iss_cd AS IssueCountryCd,
+(SELECT english_name
+ FROM vav.Localization
+ WHERE (table_name = ''govcorp.asset'') AND 
+       (table_cd = asset.cntry_of_iss_cd)
+) AS IssueCountry,
+
+(CASE WHEN issInfo.orig_avg_life >= 1 
+		THEN CONVERT(varchar(32), issInfo.orig_avg_life) + ''Y''
+	  ELSE CONVERT(varchar(32), issInfo.term_to_maturity) + ''D''
+ END) AS Term,
+ 
+ /*use english name as code*/
+(SELECT english_name
+ FROM vav.Localization
+ WHERE (table_name = ''BondTerm'') AND 
+       (table_cd = (
+		CASE WHEN ROUND(issInfo.orig_avg_life, 0, 1) > 10 
+				THEN 10 
+			 WHEN ROUND(issInfo.orig_avg_life, 0, 1) <= 10
+				THEN ROUND(issInfo.orig_avg_life, 0, 1)
+			 WHEN issInfo.orig_avg_life IS NULL
+				THEN CASE WHEN ROUND(issInfo.term_to_maturity/365, 0, 1) > 10
+							THEN 10
+						  WHEN ROUND(issInfo.term_to_maturity/365, 0, 1) <= 10
+							THEN ROUND(issInfo.term_to_maturity/365, 0, 1)
+						  WHEN issInfo.term_to_maturity IS NULL
+							THEN 11
+					 END
+		END
+))) AS BondTermCd,
+
+(SELECT english_name
+ FROM vav.Localization
+ WHERE (table_name = ''BondTerm'') AND 
+       (table_cd = (
+		CASE WHEN ROUND(issInfo.orig_avg_life, 0, 1) > 10 
+				THEN 10 
+			 WHEN ROUND(issInfo.orig_avg_life, 0, 1) <= 10
+				THEN ROUND(issInfo.orig_avg_life, 0, 1)
+			 WHEN issInfo.orig_avg_life IS NULL
+				THEN CASE WHEN ROUND(issInfo.term_to_maturity/365, 0, 1) > 10
+							THEN 10
+						  WHEN ROUND(issInfo.term_to_maturity/365, 0, 1) <= 10
+							THEN ROUND(issInfo.term_to_maturity/365, 0, 1)
+						  WHEN issInfo.term_to_maturity IS NULL
+							THEN 11
+					 END
+		END
+))) AS BondTerm,
+
+--the below 4 fileds for vav.v_bondview_full
+(CASE WHEN issInfo.orig_avg_life >= 1 THEN issInfo.orig_avg_life 
+	  ELSE issInfo.term_to_maturity 
+ END) AS OrigTerm, 
+issInfo.orig_avg_life AS OrigAvgLife,
+(CASE WHEN ROUND(issInfo.orig_avg_life, 0, 1) > 10 THEN 10 
+      ELSE ROUND(issInfo.orig_avg_life, 0, 1) 
+ END) AS BondTermNumber,
+(CASE WHEN rtrim(asset.cpn_class_cd) = ''DSC'' THEN issInfo.orig_yld_maturity 
+	  ELSE asset.current_cpn 
+ END) AS Yield,
+ asset.isin_nm AS IsinNum,
+ asset.day_count_cd AS DayCountCd,
+issInfo.orig_iss_curr_cd AS OrigIssCurrCd,
+(SELECT float_fl
+ FROM ejv.[gcodes.coupon_type_cds] AS egctcd
+ WHERE (coupon_type_cd = asset.cpn_type_cd)) AS Isfloat,
+ 
+(CASE WHEN asset2.cdc_asset_class_cd = '''' THEN ''OTH''
+	  WHEN asset2.cdc_asset_class_cd IS NULL THEN  ''OTH''
+	  ELSE asset2.cdc_asset_class_cd
+ END
+) AS BondClassCd,
+ISNULL(NULLIF(assClass.cdc_asset_class_descr, ''''), ''Other Instruments'') AS BondClassDescr,
+
+(CASE WHEN asset.put_terms_fl = ''y'' 
+		THEN ''puttable''
+	  WHEN asset.call_terms_fl = ''y''
+		THEN ''callable''
+	  ELSE ''none''
+ END) AS [Option],
+ 
+(SELECT english_name
+ FROM vav.Localization
+ WHERE (table_name = ''option'') AND 
+       (table_cd = (
+		  CASE WHEN asset.put_terms_fl = ''y'' 
+			THEN ''puttable''
+		  WHEN asset.call_terms_fl = ''y''
+			THEN ''callable''
+		  ELSE ''none''
+		 END))
+ ) AS OptionDescr,
+ 
+asset.cpn_class_cd AS CouponClassCd,
+couponClass.coupon_class_descr AS CouponClassDescr,
+CASE WHEN asset.pay_freq_cd IS NULL THEN 0 ELSE asset.pay_freq_cd END AS PayFrequencyCd,
+frequency.short_descr AS PayFrequency,
+asset2.announcement_dt AS AnnoucementDate,
+asset.orig_dated_dt AS OrigDatedDate,
+asset.maturity_dt AS MaturityDate,
+(SELECT TOP (1) listing_dt
+ FROM ejv.[govcorp.asset_exchanges] AS assExchange
+ WHERE (asset_id = asset.assetId) AND (listing_dt IS NOT NULL) AND (exch_cd IN (''CFS'', ''SHH'', ''SHZ''))
+ ORDER BY exch_cd
+ ) AS ListingDate,
+asset.float_index AS FloatIndex,
+(SELECT english_name
+ FROM vav.Localization
+ WHERE (table_name = ''float_index'') AND (table_cd = asset.float_index)) AS FloatIndexDescr,
+asset.float_offset AS FloatOffset,
+rating.rating_cd AS RatingCd,
+rating.rating_agency_cd AS RatingSrcCd,
+ratingSrcR.rating_src_descr AS RatingSrcDescr,
+partyRating.rating_cd AS PartyRatingCd,
+partyRating.rating_agency_cd AS PartyRatingSrcCd,
+ratingSrcP.rating_src_descr AS PartyRatingSrcDescr,
+issInfo.offer_registrant_name AS Issuer,
+
+newListBondInfo.lastPrice AS FirstDayClosingPrice,
+100 * (newListBondInfo.lastPrice - issInfo.orig_iss_px) / NULLIF(issInfo.orig_iss_px, 0) AS FirstDayChange,
+(newListBondInfo.accumulatedVolumn / 100000000) AS FirstDayVolume,
+100 * (newListBondInfo.accumulatedVolumn / 1000) / NULLIF(issInfo.orig_iss_amt, 0) AS FirstDayTurnoverRate,
+
+(SELECT (SELECT bookManager = STUFF(
+		(SELECT '','' + underWriter.undwrt_long_name
+			 FROM ejv.[govcorp.underwriters] AS underWriter
+			 JOIN ejv.[govcorp.underwriter_xref] AS xref ON underWriter.undwrt_id = xref.undwrt_id
+			 WHERE xref.assetId = asset.assetId AND xref.undwrt_ranking_cd = ''07''
+			 FOR XML PATH(''''))
+			 ,1
+			 ,1
+			 , ''''))) AS BookManager,
+
+(SELECT (SELECT leadUnderWri = STUFF(				 
+		    (SELECT '','' + underWriter.undwrt_long_name
+			 FROM ejv.[govcorp.underwriters] AS underWriter
+			 WHERE underWriter.undwrt_cd = asset.lead_undwrt_cd
+			 FOR XML PATH(''''))
+			 ,1
+			 ,1
+			 , ''''))) AS LeadUnderWriter,
+
+(SELECT (SELECT coUnderWri = STUFF(			 
+			(SELECT '','' + underWriter.undwrt_long_name
+			 FROM ejv.[govcorp.underwriters] AS underWriter
+			 JOIN ejv.[govcorp.underwriter_xref] AS xref ON underWriter.undwrt_id = xref.undwrt_id
+			 WHERE xref.assetId = asset.assetId AND xref.undwrt_ranking_cd = ''02''
+			 FOR XML PATH(''''))
+			 ,1
+			 ,1
+			 , ''''))) AS CoUnderWriter,
+			 
+(SELECT (SELECT member = STUFF(
+			(SELECT '','' + underWriter.undwrt_long_name
+			 FROM ejv.[govcorp.underwriters] AS underWriter
+			 JOIN ejv.[govcorp.underwriter_xref] AS xref ON underWriter.undwrt_id = xref.undwrt_id
+			 WHERE xref.assetId = asset.assetId AND xref.undwrt_ranking_cd = ''03''
+			 FOR XML PATH('''')) 
+			 ,1 
+			 ,1
+			 , '''' ))) AS UnderWriterMember,
+			 
+ejvBond.paydate AS PayDate,
+asset.descr AS BondName,
+
+assDbsXref.status_on_liquidation AS StatusOnLiqCd,
+(SELECT english_name
+FROM vav.Localization
+WHERE (table_name = ''gcodes.dbs_stat_on_liq_cds'') AND (table_cd = assDbsXref.status_on_liquidation)) AS StatusOnLiqDescr,
+ 
+(SELECT (SELECT list = STUFF(
+			(SELECT '','' + asi.id_number
+			 FROM ejv.[govcorp.asset_ident] AS asi
+			 WHERE asi.assetId = asset.assetId AND asi.id_cd IN(''CHN'',''SHZ'',''SHG'',''LOC'')
+			 FOR XML PATH('''')) 
+			 ,1 
+			 ,1
+			 , '''' ))) AS CodeList,
+			 
+
+party.indu_sector_cd AS IssuerInduSectorCd,
+(SELECT english_name
+FROM vav.Localization
+WHERE (table_name = ''gcodes.indu_sector_cds'') AND (table_cd = party.indu_sector_cd)) AS IssuerInduSectorDescr,
+party.indu_subsector_cd AS IssuerInduSubSectorCd,
+(SELECT english_name
+FROM vav.Localization
+WHERE (table_name = ''gcodes.indu_subsector_cds'') AND (table_cd = party.indu_subsector_cd)) AS IssuerInduSubSectorDescr,
+ 
+assEnhance.party_short_name AS GuarantorName,
+assEnhance.indu_sector_cd AS GuarantorInduSectorCd,
+(SELECT english_name
+FROM vav.Localization
+WHERE (table_name = ''gcodes.indu_sector_cds'') AND (table_cd = assEnhance.indu_sector_cd)) AS GuarantorInduSectorDescr,
+
+
+ejvBond.enddate_issue AS EndDateOfIssue,
+issInfo.secoff_char AS IssueTypeCd,
+(SELECT english_name
+FROM vav.Localization
+WHERE (table_name = ''gcodes.secoff_cds'') AND (table_cd = issInfo.secoff_char)) AS IssueTypeDescr,
+
+(SELECT english_name
+FROM vav.Localization
+WHERE (table_name = ''BidType'') AND (table_cd = ejvBond.bid_type)) AS AuctionType,
+ 
+assAuction.auction_dt AS AuctionDate,
+assAuction.total_applied_for AS TotalAppliedFor, 
+
+asset2.seniority_cd AS SeniorityCd,
+(SELECT english_name
+FROM vav.Localization
+WHERE (table_name = ''gcodes.seniority_cds'') AND (table_cd = asset2.seniority_cd)) AS SeniorityDescr,
+
+(CASE WHEN issInfo.use_of_proceeds = ''MD'' THEN ''Y''
+	  ELSE ''N''
+END) AS CIBondFlag,
+
+(CASE WHEN issInfo.use_of_proceeds = ''MD'' THEN N''Y''
+	  ELSE N''N''
+END) AS CIBondFlagDescr,
+
+(CASE WHEN issInfo.instrument_type_cd = ''CNCORP'' THEN ''CNCORP''
+	  WHEN issInfo.instrument_type_cd = ''CNENTERP'' THEN ''CNENTERP''
+	  WHEN issInfo.instrument_type_cd = ''CDBCRP'' THEN ''CDBCRP''
+	  WHEN issInfo.instrument_type_cd = ''CNSMEPPB'' THEN ''CNSMEPPB''
+	  ELSE ''Oth''
+END) AS OthBondTypeCd,
+
+(CASE WHEN issInfo.instrument_type_cd = ''CNCORP'' THEN ''Corporate Bonds''
+	  WHEN issInfo.instrument_type_cd = ''CNENTERP'' THEN ''Enterprise Bonds''
+	  WHEN issInfo.instrument_type_cd = ''CDBCRP'' THEN ''Certificate Deposit''
+	  WHEN issInfo.instrument_type_cd = ''CNSMEPPB'' THEN ''Small&Medium Enterprises Private Placement Bonds''
+	  ELSE ''Other''
+END) AS OthBondTypeDescr,
+
+asset.tap_issue_fl AS TapIssueFlag,
+notes.note AS TermEx,
+ejvBond.item_ex AS ItermEx,
+partyHist.hist_party_region AS HistPartyRegion,
+vav.ProvinceMapping.Province_EN AS ProvinceOfIssuer,
+ejvBond.guarantor_rating AS GuarantorRating,
+
+(SELECT english_name
+FROM vav.Localization
+WHERE (table_name = ''BidObject'') AND (table_cd = ejvBond.bid_object)) AS AuctionOject,
+
+notesGua.note AS GuarantorItem,
+
+(SELECT english_name
+FROM vav.Localization
+WHERE (table_name = ''UndwrType'') AND (table_cd = ejvBond.undwrt_type)) AS UnderWriterType,
+
+ejvBond.bid_price AS BidPrice,
+ejvBond.bid_region AS BidRegion,
+
+(case when asset.sec_class_cd in (''DSUM'',''FORM'') then  assAuction.bid_to_cover_ratio
+	else assAuction.total_comp_bid_received end ) AS MultiPurchase,
+
+issInfo.disc_comm_per_debt AS FeeRate,
+ejvBond.online_position AS OnlinePosition,
+ejvBond.online_code AS OnlineCode,
+partyHist.hist_state_incorp AS Domicile,
+
+(CASE WHEN asset.debt_type_cd = ''CDBCRP''
+	  THEN ''CDBCRP''
+	  ELSE ''NCDBCRP''
+END) AS DebtTypeCd,
+
+(CASE WHEN asset.debt_type_cd = ''CDBCRP''
+	  THEN ''CD''
+	  ELSE ''Bonds''
+END) AS DebtTypeDescr,
+
+(CASE WHEN asset.asset_type_cd = ''CORP''
+	  THEN ''Cor''
+	  WHEN asset.asset_type_cd = ''SOVR'' AND asset.sovr_class_cd = ''GOVT''
+	  THEN ''Gov''
+	  WHEN asset.asset_type_cd = ''SOVR'' AND asset.sovr_class_cd = ''AGNC''
+	  THEN ''Agen''
+	  ELSE ''OTH''
+END) AS AssetTypeCd,
+
+(CASE WHEN asset.asset_type_cd = ''CORP''
+	  THEN ''Corporate Bonds''
+	  WHEN asset.asset_type_cd = ''SOVR'' AND asset.sovr_class_cd = ''GOVT''
+	  THEN ''Government Bonds''
+	  WHEN asset.asset_type_cd = ''SOVR'' AND asset.sovr_class_cd = ''AGNC''
+	  THEN ''Agency Bonds''
+	  ELSE ''Other''
+END) AS AssetTypeDescr,
+
+(CASE WHEN country.cntry_cd IN (''CNA'', ''HK'', ''TAI'', ''JAP'', ''KOR'', ''USA'', ''GRM'', ''FRN'', ''UK'', ''LUX'')
+      THEN country.cntry_cd
+      WHEN country.cntry_cd NOT IN (''CNA'', ''HK'', ''TAI'', ''JAP'', ''KOR'') AND country.global_region_cd = ''A''
+      THEN ''OTHASIA''
+      WHEN country.global_region_cd = ''E''
+      THEN ''OTHEURO''
+      ELSE ''OTH''
+END) AS PartyCntryIncorpCd,
+
+(SELECT english_name
+FROM vav.Localization
+WHERE (table_name = ''country'') AND 
+      (table_cd = (CASE WHEN country.cntry_cd IN (''CNA'', ''HK'', ''TAI'', ''JAP'', ''KOR'', ''USA'', ''GRM'', ''FRN'', ''UK'', ''LUX'')
+      THEN country.cntry_cd
+      WHEN country.cntry_cd NOT IN (''CNA'', ''HK'', ''TAI'', ''JAP'', ''KOR'') AND country.global_region_cd = ''A''
+      THEN ''OTHASIA''
+      WHEN country.global_region_cd = ''E''
+      THEN ''OTHEURO''
+      ELSE ''OTH''
+END))) AS PartyCntryIncorpDescr,
+
+ISNULL((SELECT english_name
+FROM vav.Localization
+WHERE table_name = ''country'' AND table_cd = country.cntry_cd), country.cntry_cd) AS IssuerDomicile,
+
+(CASE WHEN asset.latest_rating_cd = '''' OR asset.latest_rating_cd is null
+	  THEN ''N''
+	  ELSE ''Y''
+END) AS RatingInfoCd,
+
+(CASE WHEN asset.latest_rating_cd = '''' OR asset.latest_rating_cd is null
+	  THEN ''N''
+	  ELSE ''Y'' 
+END) AS RatingInfo,
+
+asset.sec_class_cd AS SecClassCd,
+(CASE 
+	WHEN asset.asset_last_chg_dt >= ejvBond.lastupdate THEN
+		CASE
+			WHEN newListBondInfo.CreDate >= asset.asset_last_chg_dt THEN newListBondInfo.CreDate
+			ELSE asset.asset_last_chg_dt
+		END 
+	ELSE 
+		CASE 
+			WHEN newListBondInfo.CreDate >= ejvBond.lastupdate THEN newListBondInfo.CreDate
+			ELSE ejvBond.lastupdate
+		END
+END) AS LastChangeDate,
+
+assIt1.id_number AS BondRatingHist, --use bond code as the link for bond hist
+assIt1.id_number AS BondIssuerRating, --use bond code as the link for bond issuer rating hist
+asset.amt_iss_tot AS AmtIssTot , -- total issue amount
+vav.ProvinceMapping.ProvinceOrder,
+
+ISNULL(NULLIF((SELECT (SELECT list = STUFF(
+			(SELECT '','' + exchange.exch_cd 
+			 FROM ejv.[govcorp.asset_exchanges] AS exchange
+			 WHERE exchange.asset_id = asset.assetId
+			 FOR XML PATH('''')) 
+			 ,1 
+			 ,1
+			 , '''' ))), ''''), N''OTH'') AS ExchangeCode,
+
+ISNULL(NULLIF((SELECT (SELECT list = STUFF(
+			(SELECT '','' + echangeName.xfi_exchange_name
+			 FROM ejv.[govcorp.asset_exchanges] AS exchange
+			 LEFT JOIN ejv.[gcodes.xfi_exchange_cds] echangeName ON exchange.exch_cd = echangeName.xfi_exchange_cd
+			 WHERE exchange.asset_id = asset.assetId
+			 FOR XML PATH('''')) 
+			 ,1 
+			 ,1
+			 , '''' ))), ''''), N''Other'')  AS ExchangeName,
+
+ISNULL(NULLIF((SELECT (SELECT list = STUFF(
+			(SELECT '','' + branch.branch_id
+			 FROM ejv.[govcorp.branch] AS branch
+			 LEFT JOIN ejv.[govcorp.trustee_xref] xref ON branch.branch_id = xref.branch_id
+			 WHERE xref.asset_id = asset.assetId
+			 FOR XML PATH('''')) 
+			 ,1 
+			 ,1
+			 , '''' ))), ''''), N''OTH'')  AS TrusteeCode,
+
+ISNULL(NULLIF((SELECT (SELECT list = STUFF(
+			(SELECT '','' + branch.branch_name
+			 FROM ejv.[govcorp.branch] AS branch
+			 LEFT JOIN ejv.[govcorp.trustee_xref] xref ON branch.branch_id = xref.branch_id
+			 WHERE xref.asset_id = asset.assetId
+			 FOR XML PATH('''')) 
+			 ,1 
+			 ,1
+			 , '''' ))), ''''), N''Other'')  AS TrusteeName
+
+FROM ejv.[govcorp.asset] AS asset
+LEFT JOIN ejv.[govcorp.asset2] AS asset2 ON asset.assetId = asset2.asset_id
+LEFT JOIN ejv.[govcorp.asset_ident] AS assIt2 ON asset.assetId = assIt2.assetId AND assIt2.id_cd = ''PYC''
+LEFT JOIN ejv.[EjvBond] AS ejvBond ON asset.assetId = ejvBond.asset_id
+LEFT JOIN (SELECT i.* FROM (SELECT RowNumber = ROW_NUMBER() OVER (PARTITION BY t.assetId ORDER BY t.id_cd),t.* FROM ejv.[govcorp.asset_ident] t WHERE t.id_cd IN (''SHG'', ''SHZ'', ''SHC'', ''CHN'', ''LOC'')) i 
+		   WHERE i.RowNumber = 1) AS assIt1 ON asset.assetId = assIt1.assetId
+LEFT JOIN ejv.[govcorp.orig_iss_info] AS issInfo ON asset.assetId = issInfo.asset_id
+LEFT JOIN (SELECT i.* FROM (SELECT RowNumber = ROW_NUMBER() OVER (PARTITION BY t.asset_id ORDER BY t.id_value DESC),t.* FROM ejv.[govcorp.asset_ric] t WHERE t.id_type_cd = ''RIC'' AND LEFT(t.id_value, 2) = ''CN'') i --Use the latest rating ric
+		   WHERE i.RowNumber = 1) AS assRic ON asset.assetId = assRic.asset_id
+LEFT JOIN (SELECT i.* FROM (SELECT RowNumber = ROW_NUMBER() OVER (PARTITION BY t.BondLocalId ORDER BY t.valueDate DESC),t.* FROM vav.[NewListedBonds] t) i 
+		   WHERE i.RowNumber = 1) AS newListBondInfo ON assIt1.id_number = newListBondInfo.BondLocalId and asset.maturity_dt = newListBondInfo.maturityDate
+LEFT JOIN (SELECT i.* FROM (SELECT RowNumber = ROW_NUMBER() OVER (PARTITION BY t.assetId ORDER BY t.rating_eff_dt DESC),t.* FROM [vav].[v_rating] t) i --Use the latest rating cd
+		   WHERE i.RowNumber = 1) AS rating ON asset.assetId = rating.assetId
+LEFT JOIN (SELECT i.* FROM (SELECT RowNumber = ROW_NUMBER() OVER (PARTITION BY t.partyid ORDER BY t.rating_eff_dt DESC),t.* FROM [vav].[v_party_rating] t) i --Use the latest rating agency cd
+		   WHERE i.RowNumber = 1) AS partyRating ON asset.issuerId = partyRating.partyId
+LEFT JOIN ejv.[gcodes.cdc_asset_class_cds] AS assClass ON asset2.cdc_asset_class_cd = assClass.cdc_asset_class_cd
+LEFT JOIN ejv.[gcodes.coupon_class_cds] AS couponClass ON asset.cpn_class_cd = couponClass.coupon_class_cd
+LEFT JOIN ejv.[gcodes.freq_cds] AS frequency ON (CASE WHEN asset.pay_freq_cd IS NULL THEN 0 ELSE asset.pay_freq_cd END) = frequency.freq_cd
+LEFT JOIN ejv.[gcodes.rating_src_cds] AS ratingSrcR ON rating.rating_agency_cd = ratingSrcR.rating_src_cd
+LEFT JOIN ejv.[gcodes.rating_src_cds] AS ratingSrcP ON partyRating.rating_agency_cd = ratingSrcp.rating_src_cd
+LEFT JOIN ejv.[govcorp.asset_dbs_xref] assDbsXref ON asset.assetId = assDbsXref.asset_id
+LEFT JOIN ejv.[govcorp.party] party ON asset.issuerId = party.partyId
+LEFT JOIN (SELECT e.assetId, p.party_short_name, p.indu_sector_cd 
+		   FROM (SELECT i.* FROM (SELECT RowNumber = ROW_NUMBER() OVER (PARTITION BY t.assetId ORDER BY t.enhance_eff_dt DESC),t.* FROM ejv.[govcorp.enhancements] t) i WHERE i.RowNumber = 1) AS e 
+		   JOIN ejv.[govcorp.party] AS p ON e.guarantor_id = p.partyId
+		  ) AS assEnhance ON asset.assetId = assEnhance.assetId
+LEFT JOIN (SELECT i.* FROM (SELECT RowNumber = ROW_NUMBER() OVER (PARTITION BY t.assetId ORDER BY t.auction_dt DESC), t.* FROM ejv.[govcorp.govt_auction] t) i --User the latest auction
+		   WHERE i.RowNumber = 1) AS assAuction ON asset.assetId = assAuction.assetId
+LEFT JOIN (SELECT i.* FROM (SELECT RowNumber = ROW_NUMBER() OVER (PARTITION BY t.assetId ORDER BY t.note_eff_dt DESC), t.* FROM ejv.[govcorp.notes] t WHERE t.note_type_cd = ''COU'') i 
+		   WHERE i.RowNumber = 1) AS notes ON asset.assetId = notes.assetId
+LEFT JOIN (SELECT i.* FROM (SELECT RowNumber = ROW_NUMBER() OVER (PARTITION BY t.assetId ORDER BY t.note_eff_dt DESC), t.* FROM ejv.[govcorp.notes] t WHERE t.note_type_cd = ''GAR'') i 
+		   WHERE i.RowNumber = 1) AS notesGua ON asset.assetId = notesGua.assetId
+LEFT JOIN (SELECT i.* FROM (SELECT RowNumber = ROW_NUMBER() OVER (PARTITION BY t.party_id ORDER BY t.name_eff_dt DESC), t.* FROM ejv.[govcorp.party_name_hist] t) i --Use the latest rating cd
+		   WHERE i.RowNumber = 1) AS partyHist ON asset.issuerId = partyHist.party_id
+JOIN ejv.[gcodes.cntry_cds] country on party.party_cntry_incorp_cd = country.iso_scntry_cd
+LEFT JOIN vav.ProvinceMapping on ltrim(ejvBond.province_issuer) = Province_CN
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+' 
+GO

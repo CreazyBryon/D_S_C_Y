@@ -1,0 +1,20 @@
+﻿SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[ejv].[govcorp.branch]') AND type in (N'U'))
+BEGIN
+CREATE TABLE [ejv].[govcorp.branch](
+	[branch_id] [char](16) NOT NULL,
+	[trustee_id] [char](16) NOT NULL,
+	[branch_cntry_cd] [char](2) NULL,
+	[branch_orgid] [varchar](10) NULL,
+	[branch_zipcode] [varchar](10) NULL,
+	[branch_phone_number] [varchar](20) NULL,
+	[branch_city] [varchar](60) NULL,
+	[branch_region] [varchar](80) NULL,
+	[branch_name] [varchar](100) NOT NULL,
+	[branch_address] [varchar](100) NULL
+) ON [PRIMARY]
+END
+GO

@@ -1,0 +1,23 @@
+﻿SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[vav].[Localization]') AND type in (N'U'))
+BEGIN
+CREATE TABLE [vav].[Localization](
+	[table_name] [varchar](50) NOT NULL,
+	[table_cd] [varchar](32) NOT NULL,
+	[english_name] [varchar](100) NULL,
+	[chinese_name] [nvarchar](100) NULL,
+	[memo] [varchar](200) NULL,
+	[last_update] [datetime] NULL,
+	[row_level] [int] NULL,
+	[chart_source] [varchar](32) NULL,
+PRIMARY KEY CLUSTERED 
+(
+	[table_name] ASC,
+	[table_cd] ASC
+)WITH (PAD_INDEX  = OFF, STATISTICS_NORECOMPUTE  = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS  = ON, ALLOW_PAGE_LOCKS  = ON) ON [PRIMARY]
+) ON [PRIMARY]
+END
+GO

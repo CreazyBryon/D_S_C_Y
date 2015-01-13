@@ -1,0 +1,88 @@
+﻿SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[vav].[GetDimSumBondDetail]') AND type in (N'P', N'PC'))
+BEGIN
+EXEC dbo.sp_executesql @statement = N'-- =============================================
+-- Author:		<qingwei.li>
+-- Create date: <2013.5.9>
+-- Description:	<2013.5.9>
+-- =============================================
+CREATE PROCEDURE [vav].[GetDimSumBondDetail] (
+	@Category varchar(30)='''',
+	@TypeValue varchar(30)='''',
+	@StartDate datetime=''1900-01-01'', 
+	@EndDate datetime=''1900-01-01'',
+	@Culture varchar(10)=''zh-CN'',
+	@ColumnList varchar(4000)='''',
+	@Unit varchar(10) = '''', 
+	@BondTermType varchar(10) = ''issue'',
+	@OrderBy varchar(50) = ''''
+)
+AS
+BEGIN
+	-- SET NOCOUNT ON added to prevent extra result sets from
+	-- interfering with SELECT statements.
+	SET NOCOUNT ON;
+	
+	DECLARE @sqlCommand varchar(4000)
+	DECLARE @tableName varchar(50)
+	DECLARE @filter varchar(200)
+	DECLARE @replicator varchar(20)
+	
+	SET @replicator = ''''
+	
+	IF @BondTermType = ''issue''
+		SET @filter = '' b.IssueDate >= '''''' + CONVERT(varchar, @StartDate, 121) + '''''''' 
+					+ '' AND b.IssueDate <= '''''' + CONVERT(varchar, @EndDate, 121) + ''''''''
+	ELSE 
+		SET @filter = '' b.MaturityDate >= '''''' + CONVERT(varchar, @StartDate, 121) + '''''''' 
+					+ '' AND b.MaturityDate <= '''''' + CONVERT(varchar, @EndDate, 121) + ''''''''
+					
+	IF @TypeValue != ''all''
+	BEGIN
+		SET @filter += '' AND '' + CASE @Category
+						WHEN ''Debt_Type'' THEN ''b.DebtTypeCd''
+						WHEN ''Asset_Type'' THEN ''b.AssetTypeCd''
+						WHEN ''Domicile_Of_Issuer'' THEN ''b.PartyCntryIncorpCd''
+						WHEN ''Rating_Info'' THEN ''b.RatingInfoCd''
+						WHEN ''Term'' THEN ''b.BondTermCd''
+						WHEN ''Indu_Of_Issuer'' THEN ''b.IssuerInduSectorCd''
+						WHEN ''Issue_Country'' THEN ''b.IssueCountryCd''
+					  END
+					  
+		IF @Category = ''Debt_Type'' AND @TypeValue != ''CDBCRP''
+			SET @filter += '' != ''''CDBCRP''''''
+		ELSE IF @Category = ''Asset_Type'' AND @TypeValue = ''Sovr''
+			SET @filter += '' IN(''''Gov'''', ''''Agen'''')''
+		ELSE
+			SET @filter += '' = '''''' + @TypeValue + ''''''''
+	END
+		
+	IF @Culture = ''zh-CN''
+		SET @tableName = ''[vav].[BondInfoCn]''
+	ELSE
+		SET @tableName = ''[vav].[BondInfoEn]''
+	
+	IF (CHARINDEX(''[DayToList]'', @ColumnList) > 0)
+		SET @replicator = ''[DayToList]''
+	ELSE
+		SET @replicator = ''DayToList''
+		
+	SET @sqlCommand = ''SELECT '' + [vav].[ColumnPreprocess](@ColumnList) + REPLACE(@columnList, @replicator, ''DATEDIFF(day, GETDATE(), ListingDate) AS [DayToList]'') + '' FROM '' + @tableName 
+					+ '' AS b WHERE '' 
+					+ @filter
+					+ '' AND b.SecClassCd IN (''''DSUM'''', ''''FORM'''')''
+	
+	IF @OrderBy != ''''
+		SET @sqlCommand += '' ORDER BY '' + @OrderBy
+	ELSE
+		SET @sqlCommand += '' ORDER BY b.IssueDate DESC''
+	
+	PRINT @sqlCommand
+	EXEC (@sqlCommand)
+END
+' 
+END
+GO

@@ -1,0 +1,41 @@
+﻿SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[vav].[NetPurchaseVolume]') AND type in (N'U'))
+BEGIN
+CREATE TABLE [vav].[NetPurchaseVolume](
+	[date] [datetime] NOT NULL,
+	[id] [int] NOT NULL,
+	[treasurybond_volume] [float] NULL,
+	[treasurybond_volume_year] [float] NULL,
+	[pbb_cdb_volume] [float] NULL,
+	[pbb_cdb_volume_year] [float] NULL,
+	[pbb_eibc_volume] [float] NULL,
+	[pbb_eibc_volume_year] [float] NULL,
+	[pbb_adbc_volume] [float] NULL,
+	[pbb_adbc_volume_year] [float] NULL,
+	[corporatebond_volume] [float] NULL,
+	[corporatebond_volume_year] [float] NULL,
+	[cp_volume] [float] NULL,
+	[cp_volume_year] [float] NULL,
+	[middletermnote_volume] [float] NULL,
+	[middletermnote_volume_year] [float] NULL,
+	[cbb_volume] [float] NULL,
+	[cbb_volume_year] [float] NULL,
+	[last_update] [datetime] NULL,
+	[subordinated_volume] [float] NULL,
+	[subordinated_volume_year] [float] NULL,
+	[hybirdcaptial_volume] [float] NULL,
+	[hybirdcapital_volume_year] [float] NULL,
+	[row_index] [int] NULL,
+	[Second_Capital_instruments] [float] NULL,
+	[Second_Capital_instruments_year] [float] NULL,
+PRIMARY KEY CLUSTERED 
+(
+	[date] ASC,
+	[id] ASC
+)WITH (PAD_INDEX  = OFF, STATISTICS_NORECOMPUTE  = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS  = ON, ALLOW_PAGE_LOCKS  = ON) ON [PRIMARY]
+) ON [PRIMARY]
+END
+GO
