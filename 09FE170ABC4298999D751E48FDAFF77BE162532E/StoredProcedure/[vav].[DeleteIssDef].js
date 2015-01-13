@@ -9,6 +9,7 @@ EXEC dbo.sp_executesql @statement = N'
 -- Author:		<qingwei.li>
 -- Create date: <2013.5.7>
 -- Description:	<2013.5.7>
+--test
 -- =============================================
 CREATE PROCEDURE [vav].[DeleteIssDef] (
 	@Result varchar(400) output
