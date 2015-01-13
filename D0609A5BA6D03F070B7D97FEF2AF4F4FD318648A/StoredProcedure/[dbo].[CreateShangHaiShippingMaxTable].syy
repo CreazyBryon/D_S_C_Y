@@ -36,10 +36,10 @@ select KeyWord,
 	 orderkey,
 	 pricetime,
 	 rad,
-      t.cn_cn
-       ,t.cn_en,
-       t.unit_cn,
-       t.unit_en
+      isnull(t.cn_cn,codename) as cn_cn,
+      isnull(t.cn_en,code) as cn_en,
+      t.unit_cn,
+      t.unit_en
  from(
 select * from (
 	select  ROW_NUMBER()over(PARTITION by m.code order by m.[createDateTime] desc) as rn,
